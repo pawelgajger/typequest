@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TypeQuest — nauka TypeScript przez grę</title>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <!-- ===== Boot / loading overlay ===== -->
+  <div id="boot" class="boot">
+    <div class="boot-inner">
+      <div class="boot-logo">&lt;/&gt;</div>
+      <div class="boot-title">TypeQuest</div>
+      <div class="boot-sub" data-i18n="bootLoading">Ładowanie silnika TypeScript…</div>
+      <div class="boot-bar"><div class="boot-bar-fill" id="bootBarFill"></div></div>
+    </div>
+  </div>
+
+  <!-- ===== Top bar ===== -->
+  <header class="topbar">
+    <div class="brand" id="brandHome" title="Strona główna">
+      <span class="brand-glyph">&lt;/&gt;</span>
+      <span class="brand-name">TypeQuest</span>
+    </div>
+
+    <div class="topbar-stats">
+      <div class="stat" title="Poziom gracza">
+        <span class="stat-icon">⭐</span>
+        <span class="stat-label" data-i18n="level">Poziom</span>
+        <span class="stat-value" id="playerLevel">1</span>
+      </div>
+      <div class="stat xp-stat" title="Punkty doświadczenia">
+        <span class="stat-icon">✦</span>
+        <span class="stat-value"><span id="playerXp">0</span> XP</span>
+        <div class="xp-mini"><div class="xp-mini-fill" id="xpMiniFill"></div></div>
+      </div>
+      <div class="stat" title="Seria poprawnych odpowiedzi">
+        <span class="stat-icon">🔥</span>
+        <span class="stat-value" id="streakValue">0</span>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      <button class="ghost-btn" id="achievementsBtn" title="Osiągnięcia">🏅 <span data-i18n="badges">Odznaki</span></button>
+      <div class="lang-toggle" id="langToggle">
+        <button data-lang="pl" class="active">PL</button>
+        <button data-lang="en">EN</button>
+      </div>
+      <button class="ghost-btn danger" id="resetBtn" title="Reset postępu">↺</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- ===== Sidebar ===== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="overall-progress">
+        <div class="overall-progress-head">
+          <span data-i18n="totalProgress">Postęp całkowity</span>
+          <span id="overallPct">0%</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="overallFill"></div></div>
+      </div>
+      <nav id="nav" class="nav"></nav>
+    </aside>
+
+    <!-- ===== Main content ===== -->
+    <main class="content" id="content">
+      <!-- dynamically rendered -->
+    </main>
+  </div>
+
+  <!-- ===== Achievements modal ===== -->
+  <div class="modal-backdrop" id="achievementsModal" hidden>
+    <div class="modal">
+      <div class="modal-head">
+        <h2 data-i18n="badges">Odznaki</h2>
+        <button class="icon-btn" id="closeAchievements">✕</button>
+      </div>
+      <div class="modal-body" id="achievementsList"></div>
+    </div>
+  </div>
+
+  <!-- ===== Toast container ===== -->
+  <div class="toast-stack" id="toastStack"></div>
+
+  <!-- ===== Dependencies (CDN) ===== -->
+  <!-- TypeScript compiler for in-browser transpiling -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/typescript/5.4.5/typescript.min.js"></script>
+  <!-- Monaco editor loader -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

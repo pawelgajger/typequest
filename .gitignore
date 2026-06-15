@@ -1,0 +1,11 @@
+# Dependencies / build artifacts
+node_modules/
+package-lock.json
+package.json
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
