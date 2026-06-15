@@ -46,6 +46,7 @@
     </div>
 
     <div class="topbar-actions">
+      <button class="ghost-btn" id="syncBtn" title="Synchronizacja w chmurze">☁️ <span id="syncBtnLabel">Synchronizuj</span></button>
       <button class="ghost-btn" id="achievementsBtn" title="Osiągnięcia">🏅 <span data-i18n="badges">Odznaki</span></button>
       <div class="lang-toggle" id="langToggle">
         <button data-lang="pl" class="active">PL</button>
@@ -85,6 +86,17 @@
     </div>
   </div>
 
+  <!-- ===== Sync (cloud) modal ===== -->
+  <div class="modal-backdrop" id="syncModal" hidden>
+    <div class="modal">
+      <div class="modal-head">
+        <h2 data-i18n="syncTitle">Synchronizacja w chmurze</h2>
+        <button class="icon-btn" id="closeSync">✕</button>
+      </div>
+      <div class="modal-body" id="syncBody"></div>
+    </div>
+  </div>
+
   <!-- ===== Toast container ===== -->
   <div class="toast-stack" id="toastStack"></div>
 
@@ -93,7 +105,10 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/typescript/5.4.5/typescript.min.js"></script>
   <!-- Monaco editor loader -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+  <!-- Supabase client (synchronizacja postępów w chmurze) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
+  <script src="config.js"></script>
   <script src="data.js"></script>
   <script src="app.js"></script>
 </body>

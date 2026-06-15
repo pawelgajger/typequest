@@ -34,6 +34,7 @@
   }
   function saveState() {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+    schedulePush();
   }
 
   /* ---------- i18n ---------- */
@@ -146,6 +147,7 @@
     $("#overallPct").textContent = pct + "%";
     $("#overallFill").style.width = pct + "%";
     $$("[data-i18n]").forEach((n) => { n.textContent = t(n.getAttribute("data-i18n")); });
+    if (typeof updateSyncBtn === "function") updateSyncBtn();
   }
 
   /* ---------- Toasty ---------- */
@@ -656,6 +658,215 @@
     });
   }
 
+  /* =======================================================================
+     SYNCHRONIZACJA W CHMURZE (Supabase)
+     ======================================================================= */
+  const cloud = { client: null, user: null, syncing: false, lastSync: 0, pushTimer: null, suspend: false };
+
+  function isSyncConfigured() {
+    const c = window.SUPABASE_CONFIG;
+    return !!(c && c.url && c.anonKey && !/YOUR_/.test(c.url) && !/YOUR_/.test(c.anonKey));
+  }
+  function getSb() {
+    if (cloud.client) return cloud.client;
+    if (!isSyncConfigured() || !window.supabase) return null;
+    cloud.client = window.supabase.createClient(window.SUPABASE_CONFIG.url, window.SUPABASE_CONFIG.anonKey);
+    return cloud.client;
+  }
+
+  function serializableState() {
+    return {
+      lang: state.lang,
+      xp: state.xp,
+      completed: state.completed,
+      achievements: state.achievements,
+      streak: state.streak,
+      bestStreak: state.bestStreak,
+      labsPassed: state.labsPassed,
+    };
+  }
+
+  // Przelicza pochodne liczniki ze zbioru ukończonych modułów (deterministycznie),
+  // dzięki czemu scalanie postępów z dwóch urządzeń nigdy nie zdublowuje XP.
+  function recomputeDerived(s) {
+    let xp = 0, labs = 0;
+    COURSE.forEach((lv) => lv.modules.forEach((m) => {
+      if (s.completed && s.completed[m.id]) { xp += m.xp || 0; if (m.type === "lab") labs++; }
+    }));
+    s.xp = xp;
+    s.labsPassed = labs;
+  }
+  function mergeStates(localS, remoteS) {
+    const out = Object.assign({}, localS);
+    out.completed = Object.assign({}, localS.completed || {}, remoteS.completed || {});
+    out.achievements = Object.assign({}, localS.achievements || {}, remoteS.achievements || {});
+    out.bestStreak = Math.max(localS.bestStreak || 0, remoteS.bestStreak || 0);
+    out.streak = Math.max(localS.streak || 0, remoteS.streak || 0);
+    out.lang = localS.lang || remoteS.lang || "pl";
+    recomputeDerived(out);
+    return out;
+  }
+
+  function schedulePush() {
+    if (!cloud.user || cloud.suspend) return;
+    if (cloud.pushTimer) clearTimeout(cloud.pushTimer);
+    cloud.pushTimer = setTimeout(pushNow, 800);
+  }
+  async function pushNow() {
+    const sb = getSb();
+    if (!sb || !cloud.user) return;
+    cloud.syncing = true; updateSyncUI();
+    try {
+      const { error } = await sb.from("progress").upsert({
+        user_id: cloud.user.id,
+        state: serializableState(),
+        updated_at: new Date().toISOString(),
+      });
+      if (!error) cloud.lastSync = Date.now();
+      else console.warn("Sync push error:", error.message);
+    } catch (e) { console.warn(e); }
+    cloud.syncing = false; updateSyncUI();
+  }
+  async function pullAndMerge() {
+    const sb = getSb();
+    if (!sb || !cloud.user) return;
+    cloud.syncing = true; updateSyncUI();
+    try {
+      const { data, error } = await sb.from("progress").select("state").eq("user_id", cloud.user.id).maybeSingle();
+      if (error) throw error;
+      cloud.suspend = true;
+      if (data && data.state) {
+        state = mergeStates(state, data.state);
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+        checkAchievements();
+        toast(t("syncTitle"), t("syncPulled"), "");
+      }
+      cloud.suspend = false;
+      await pushNow(); // odeślij scalony stan, aby chmura też miała pełną sumę
+      cloud.lastSync = Date.now();
+    } catch (e) {
+      console.warn("Sync pull error:", e && e.message);
+    }
+    cloud.syncing = false;
+    updateTopbar(); renderNav(); render(); updateSyncUI();
+  }
+
+  async function sbSignIn(email, pass) {
+    const sb = getSb(); if (!sb) return { error: "config" };
+    const { data, error } = await sb.auth.signInWithPassword({ email: email, password: pass });
+    if (error) return { error: error.message };
+    cloud.user = data.user; await pullAndMerge(); return { ok: true };
+  }
+  async function sbSignUp(email, pass) {
+    const sb = getSb(); if (!sb) return { error: "config" };
+    const { data, error } = await sb.auth.signUp({ email: email, password: pass });
+    if (error) return { error: error.message };
+    if (data.session) { cloud.user = data.user; await pullAndMerge(); return { ok: true }; }
+    return { ok: true, confirm: true };
+  }
+  async function sbSignOut() {
+    const sb = getSb(); if (!sb) return;
+    try { await sb.auth.signOut(); } catch (e) {}
+    cloud.user = null; cloud.lastSync = 0;
+    updateSyncUI();
+  }
+
+  async function sbInit() {
+    const sb = getSb();
+    updateSyncBtn();
+    if (!sb) return;
+    sb.auth.onAuthStateChange((_event, session) => {
+      cloud.user = session ? session.user : null;
+      updateSyncBtn();
+    });
+    try {
+      const { data } = await sb.auth.getSession();
+      if (data && data.session) { cloud.user = data.session.user; await pullAndMerge(); }
+    } catch (e) {}
+    updateSyncBtn();
+  }
+
+  function updateSyncBtn() {
+    const label = $("#syncBtnLabel");
+    const btn = $("#syncBtn");
+    if (!label || !btn) return;
+    if (cloud.user) { label.textContent = t("cloudOnBtn"); btn.classList.add("synced"); }
+    else { label.textContent = t("sync"); btn.classList.remove("synced"); }
+  }
+
+  function fmtTime(ts) {
+    if (!ts) return t("never");
+    const d = new Date(ts);
+    return d.toLocaleTimeString(state.lang === "pl" ? "pl-PL" : "en-US", { hour: "2-digit", minute: "2-digit" });
+  }
+
+  function renderSyncModal() {
+    const body = $("#syncBody");
+    body.innerHTML = "";
+
+    if (!isSyncConfigured()) {
+      body.appendChild(el("div", { class: "sync-note", html: t("syncNotConfigured") }));
+      return;
+    }
+
+    if (cloud.user) {
+      body.appendChild(el("div", { class: "sync-status" }, [
+        el("span", { class: "dot" + (cloud.syncing ? "" : "") }),
+        el("div", {}, [
+          el("div", {}, [el("span", { class: "meta", text: t("loggedInAs") + ": " }), el("span", { class: "who", text: cloud.user.email || "—" })]),
+          el("div", { class: "meta", text: t("lastSync") + ": " + (cloud.syncing ? t("syncing") : fmtTime(cloud.lastSync)) }),
+        ]),
+      ]));
+      const msg = el("div", { class: "sync-msg" });
+      body.appendChild(el("div", { class: "sync-actions" }, [
+        el("button", { class: "btn", text: "↻ " + t("syncNow"), onclick: async () => { msg.className = "sync-msg info show"; msg.textContent = t("syncing"); await pullAndMerge(); msg.className = "sync-msg ok show"; msg.textContent = t("syncDone"); } }),
+        el("button", { class: "btn secondary", text: t("signOut"), onclick: async () => { await sbSignOut(); toast(t("syncTitle"), t("signedOut"), ""); renderSyncModal(); } }),
+      ]));
+      body.appendChild(msg);
+      body.appendChild(el("div", { class: "sync-note", style: "margin-top:12px", text: t("syncSecurityNote") }));
+      return;
+    }
+
+    // formularz logowania / rejestracji
+    body.appendChild(el("p", { class: "sync-note", text: t("syncIntro") }));
+    const emailIn = el("input", { class: "sync-input", type: "email", autocomplete: "email", placeholder: "you@example.com" });
+    const passIn = el("input", { class: "sync-input", type: "password", autocomplete: "current-password", placeholder: "••••••••" });
+    const msg = el("div", { class: "sync-msg" });
+
+    function showMsg(kind, text) { msg.className = "sync-msg show " + kind; msg.textContent = text; }
+    async function doAuth(mode) {
+      const email = emailIn.value.trim();
+      const pass = passIn.value;
+      if (!email || !pass) { showMsg("err", t("fillEmailPass")); return; }
+      showMsg("info", t("syncing"));
+      const res = mode === "in" ? await sbSignIn(email, pass) : await sbSignUp(email, pass);
+      if (res && res.error) { showMsg("err", res.error); return; }
+      if (res && res.confirm) { showMsg("ok", t("signedUpConfirm")); return; }
+      toast(t("syncTitle"), t("signedIn"), "xp");
+      renderSyncModal();
+      updateSyncBtn();
+    }
+
+    const form = el("div", { class: "sync-form" }, [
+      el("div", { class: "sync-field" }, [el("label", { text: t("emailLabel") }), emailIn]),
+      el("div", { class: "sync-field" }, [el("label", { text: t("passwordLabel") }), passIn]),
+      el("div", { class: "sync-actions" }, [
+        el("button", { class: "btn", text: t("signIn"), onclick: () => doAuth("in") }),
+        el("button", { class: "btn secondary", text: t("signUp"), onclick: () => doAuth("up") }),
+      ]),
+      msg,
+    ]);
+    passIn.addEventListener("keydown", (e) => { if (e.key === "Enter") doAuth("in"); });
+    body.appendChild(form);
+    body.appendChild(el("div", { class: "sync-note", style: "margin-top:12px", text: t("syncSecurityNote") }));
+  }
+
+  function updateSyncUI() {
+    updateSyncBtn();
+    const modal = $("#syncModal");
+    if (modal && !modal.hidden) renderSyncModal();
+  }
+
   /* ---------- Inicjalizacja UI / zdarzenia ---------- */
   function bindUI() {
     $("#brandHome").addEventListener("click", () => goTo({ view: "home" }));
@@ -669,6 +880,7 @@
       saveState();
       render();
       renderNav();
+      updateSyncBtn();
     });
     $$("#langToggle button").forEach((b) => b.classList.toggle("active", b.dataset.lang === state.lang));
 
@@ -678,6 +890,13 @@
     });
     $("#closeAchievements").addEventListener("click", () => { $("#achievementsModal").hidden = true; });
     $("#achievementsModal").addEventListener("click", (e) => { if (e.target.id === "achievementsModal") e.target.hidden = true; });
+
+    $("#syncBtn").addEventListener("click", () => {
+      renderSyncModal();
+      $("#syncModal").hidden = false;
+    });
+    $("#closeSync").addEventListener("click", () => { $("#syncModal").hidden = true; });
+    $("#syncModal").addEventListener("click", (e) => { if (e.target.id === "syncModal") e.target.hidden = true; });
 
     $("#resetBtn").addEventListener("click", () => {
       if (confirm(t("resetConfirm"))) {
@@ -744,6 +963,9 @@
     setBoot(0.45);
 
     await loadMonaco(setBoot);
+
+    // synchronizacja w chmurze (jeśli skonfigurowana) — nie blokuje startu
+    sbInit().catch((e) => console.warn("Sync init:", e));
 
     setBoot(1);
     await sleep(250);
