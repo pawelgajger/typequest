@@ -667,10 +667,19 @@
     const c = window.SUPABASE_CONFIG;
     return !!(c && c.url && c.anonKey && !/YOUR_/.test(c.url) && !/YOUR_/.test(c.anonKey));
   }
+  function normalizeUrl(raw) {
+    // Akceptuj wklejony Project URL nawet z nadmiarowym "/rest/v1" lub ukośnikami.
+    return String(raw || "")
+      .trim()
+      .replace(/\/+$/, "")        // usuń końcowe ukośniki
+      .replace(/\/rest\/v1$/i, "") // usuń endpoint REST, jeśli ktoś go skopiował
+      .replace(/\/auth\/v1$/i, "")
+      .replace(/\/+$/, "");
+  }
   function getSb() {
     if (cloud.client) return cloud.client;
     if (!isSyncConfigured() || !window.supabase) return null;
-    cloud.client = window.supabase.createClient(window.SUPABASE_CONFIG.url, window.SUPABASE_CONFIG.anonKey);
+    cloud.client = window.supabase.createClient(normalizeUrl(window.SUPABASE_CONFIG.url), String(window.SUPABASE_CONFIG.anonKey).trim());
     return cloud.client;
   }
 
