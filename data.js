@@ -167,10 +167,22 @@ function hl(code) {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
+
+  // Stringi i komentarze chowamy pod jednoznakowymi placeholderami z obszaru
+  // Private Use Area (U+E000+). Nie są to znaki "słowne" ani cyfry, więc kolejne
+  // podmiany słów kluczowych / typów / liczb nigdy w nie nie trafią ani nie zepsują
+  // już wstawionego HTML-a (np. atrybutu class="...").
+  const store = [];
+  const stash = (html) => {
+    const ch = String.fromCharCode(0xe000 + store.length);
+    store.push(html);
+    return ch;
+  };
+
   // komentarze
-  s = s.replace(/(\/\/[^\n]*)/g, '<span class="tok-com">$1</span>');
+  s = s.replace(/\/\/[^\n]*/g, (m) => stash('<span class="tok-com">' + m + "</span>"));
   // stringi
-  s = s.replace(/("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)/g, '<span class="tok-str">$1</span>');
+  s = s.replace(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`/g, (m) => stash('<span class="tok-str">' + m + "</span>"));
   // słowa kluczowe
   s = s.replace(/\b(const|let|var|function|return|class|interface|type|extends|implements|new|public|private|protected|readonly|async|await|if|else|for|while|of|in|import|export|from|enum|namespace|as|keyof|typeof|infer|never|void|null|undefined|true|false|this|super|get|set|static|abstract)\b/g,
     '<span class="tok-key">$1</span>');
@@ -178,7 +190,9 @@ function hl(code) {
   s = s.replace(/\b(string|number|boolean|any|unknown|object|Array|Promise|Record|Partial|Pick|Omit|Readonly|Required|ReturnType|Parameters)\b/g,
     '<span class="tok-type">$1</span>');
   // liczby
-  s = s.replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="tok-num">$1</span>');
+  s = s.replace(/\b\d+(?:\.\d+)?\b/g, (m) => '<span class="tok-num">' + m + "</span>");
+  // przywracamy schowane stringi/komentarze
+  s = s.replace(/[\ue000-\uf8ff]/g, (ch) => store[ch.charCodeAt(0) - 0xe000]);
   return s;
 }
 function codeBlock(code) {

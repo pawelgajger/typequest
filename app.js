@@ -60,6 +60,7 @@
         else if (k === "text") node.textContent = props[k];
         else if (k.startsWith("on") && typeof props[k] === "function") node.addEventListener(k.slice(2), props[k]);
         else if (k === "dataset") Object.assign(node.dataset, props[k]);
+        else if (props[k] === null || props[k] === undefined || props[k] === false) { /* pomiń pusty atrybut (np. disabled) */ }
         else node.setAttribute(k, props[k]);
       }
     }
