@@ -14,6 +14,7 @@
     xp: 0,
     completed: {},      // { moduleId: true }
     achievements: {},   // { achievementId: true }
+    weak: {},           // { "moduleId:questionIndex": true } — błędne odpowiedzi do powtórki
     streak: 0,
     bestStreak: 0,
     labsPassed: 0,
@@ -235,6 +236,8 @@
     const content = $("#content");
     content.innerHTML = "";
     if (route.view === "home") return renderHome(content);
+    if (route.view === "cheatsheet") return renderCheatsheet(content);
+    if (route.view === "review") return renderReview(content);
     const level = COURSE[route.levelIdx];
     const mod = level.modules[route.modIdx];
     if (!isModuleUnlocked(route.levelIdx, route.modIdx)) { route = { view: "home" }; return renderHome(content); }
@@ -259,6 +262,20 @@
     ]);
     content.appendChild(hero);
 
+    const weak = countWeak();
+    if (weak > 0) {
+      content.appendChild(el("div", { class: "card review-card" }, [
+        el("div", { class: "review-card-info" }, [
+          el("div", { class: "review-card-ico", text: "🔁" }),
+          el("div", {}, [
+            el("h3", { text: t("reviewWeak") }),
+            el("p", { text: weak + " " + t("weakQuestions") + " · " + t("reviewWeakDesc") }),
+          ]),
+        ]),
+        el("button", { class: "btn", text: t("startReview"), onclick: () => goTo({ view: "review" }) }),
+      ]));
+    }
+
     const anchor = el("div", { id: "levelsAnchor" });
     content.appendChild(anchor);
 
@@ -275,11 +292,14 @@
         el("p", { text: L(level.desc) }),
         el("div", { class: "lc-foot" }, [
           el("span", { class: "lc-prog", text: done + "/" + level.modules.length + " " + t("modules") }),
-          el("button", {
-            class: "btn " + (done === level.modules.length ? "success" : "secondary"),
-            text: done === level.modules.length ? t("review") : t("startLevel"),
-            onclick: () => goTo({ view: "module", levelIdx: li, modIdx: firstUnlockedInLevel(li) }),
-          }),
+          el("div", { class: "lc-btns" }, [
+            unlocked ? el("button", { class: "btn secondary lc-cheat", text: "📋 " + t("cheatsheet"), onclick: () => goTo({ view: "cheatsheet", levelIdx: li }) }) : null,
+            el("button", {
+              class: "btn " + (done === level.modules.length ? "success" : "secondary"),
+              text: done === level.modules.length ? t("review") : t("startLevel"),
+              onclick: () => goTo({ view: "module", levelIdx: li, modIdx: firstUnlockedInLevel(li) }),
+            }),
+          ]),
         ]),
       ]);
       grid.appendChild(card);
@@ -616,8 +636,11 @@
           input.classList.add(isCorrect ? "correct" : "wrong");
           input.disabled = true;
         }
-        if (isCorrect) correct++;
+        const qid = mod.id + ":" + qi;
+        if (isCorrect) { delete state.weak[qid]; correct++; }
+        else { state.weak[qid] = true; }
       });
+      saveState();
 
       const ratio = correct / mod.questions.length;
       const passed = ratio >= (mod.passRatio || 0.6);
@@ -642,6 +665,133 @@
     });
 
     content.appendChild(moduleFooter(level, mod));
+  }
+
+  /* ---------- Ściąga (cheatsheet) ---------- */
+  function renderCheatsheet(content) {
+    const level = COURSE[route.levelIdx];
+    const cs = (typeof CHEATSHEETS !== "undefined" && CHEATSHEETS[level.id]) || null;
+    content.appendChild(el("div", { class: "page-head" }, [
+      el("div", { class: "crumbs", text: L(level.name) + " · " + t("cheatsheet") }),
+      el("h1", { class: "page-title", text: t("cheatsheetFor") + ": " + L(level.name) }),
+    ]));
+    const card = el("div", { class: "card lesson-body" });
+    card.innerHTML = cs ? L(cs) : "<p>—</p>";
+    content.appendChild(card);
+    content.appendChild(el("div", { class: "module-foot" }, [
+      el("button", { class: "btn secondary", text: t("backToHome"), onclick: () => goTo({ view: "home" }) }),
+      el("button", { class: "btn", text: t("startLevel") + " →", onclick: () => goTo({ view: "module", levelIdx: route.levelIdx, modIdx: firstUnlockedInLevel(route.levelIdx) }) }),
+    ]));
+  }
+
+  /* ---------- Powtórka słabych pytań ---------- */
+  function getWeakList() {
+    const list = [];
+    COURSE.forEach((level) => level.modules.forEach((mod) => {
+      if (mod.type !== "quiz") return;
+      mod.questions.forEach((q, qi) => {
+        const qid = mod.id + ":" + qi;
+        if (state.weak[qid]) list.push({ qid, mod, level, q, qi });
+      });
+    }));
+    return list;
+  }
+  function countWeak() { return Object.keys(state.weak || {}).length; }
+
+  function renderReview(content) {
+    content.appendChild(el("div", { class: "page-head" }, [
+      el("div", { class: "crumbs", text: t("reviewWeak") }),
+      el("h1", { class: "page-title", text: t("reviewWeak") }),
+      el("p", { class: "page-sub", text: t("reviewWeakDesc") }),
+    ]));
+
+    const list = getWeakList();
+    if (list.length === 0) {
+      content.appendChild(el("div", { class: "card", html: "<div style='text-align:center;padding:24px 0;font-size:18px'>" + t("noWeak") + "</div>" }));
+      content.appendChild(el("div", { class: "module-foot" }, [
+        el("button", { class: "btn secondary", text: t("backToHome"), onclick: () => goTo({ view: "home" }) }),
+      ]));
+      return;
+    }
+
+    const card = el("div", { class: "card" });
+    const answers = {};
+    list.forEach((item, idx) => {
+      const q = item.q;
+      const qWrap = el("div", { class: "quiz-q", dataset: { idx: String(idx) } });
+      qWrap.appendChild(el("div", { class: "q-text", html: (idx + 1) + ". " + L(q.q) + " <span style='color:var(--text-faint);font-size:12px'>(" + t("fromQuiz") + ": " + L(item.mod.title) + ")</span>" }));
+      if (q.type === "mc") {
+        const opts = el("div", { class: "quiz-options" });
+        q.options.forEach((opt, oi) => {
+          const optNode = el("label", { class: "quiz-option" }, [
+            el("span", { class: "opt-marker", text: String.fromCharCode(65 + oi) }),
+            el("span", { html: L(opt) }),
+          ]);
+          optNode.addEventListener("click", () => {
+            if (qWrap.dataset.locked) return;
+            answers[idx] = oi;
+            $$(".quiz-option", opts).forEach((n) => n.classList.remove("selected"));
+            optNode.classList.add("selected");
+          });
+          opts.appendChild(optNode);
+        });
+        qWrap.appendChild(opts);
+      } else if (q.type === "fill") {
+        const input = el("input", { class: "fill-input", type: "text", placeholder: t("yourAnswer") });
+        input.addEventListener("input", () => { answers[idx] = input.value; });
+        qWrap.appendChild(input);
+      }
+      qWrap.appendChild(el("div", { class: "q-explain", id: "rev-explain-" + idx, html: L(q.explain) }));
+      card.appendChild(qWrap);
+    });
+
+    const scoreNode = el("span", { class: "quiz-score" });
+    const checkBtn = el("button", { class: "btn", text: t("checkReview") });
+    card.appendChild(el("div", { class: "quiz-foot" }, [checkBtn, scoreNode]));
+    content.appendChild(card);
+
+    const foot = el("div", { class: "module-foot" }, [
+      el("button", { class: "btn secondary", text: t("backToHome"), onclick: () => goTo({ view: "home" }) }),
+    ]);
+    content.appendChild(foot);
+
+    checkBtn.addEventListener("click", () => {
+      let correct = 0;
+      list.forEach((item, idx) => {
+        const q = item.q;
+        const qWrap = card.children[idx];
+        qWrap.dataset.locked = "1";
+        $("#rev-explain-" + idx).classList.add("show");
+        let isCorrect = false;
+        if (q.type === "mc") {
+          const chosen = answers[idx];
+          isCorrect = chosen === q.answer;
+          $$(".quiz-option", qWrap).forEach((n, oi) => {
+            n.classList.remove("selected");
+            if (oi === q.answer) n.classList.add("correct");
+            else if (oi === chosen) n.classList.add("wrong");
+          });
+        } else if (q.type === "fill") {
+          const val = (answers[idx] || "").trim().toLowerCase();
+          isCorrect = q.answer.some((a) => a.toLowerCase() === val);
+          const input = $(".fill-input", qWrap);
+          input.classList.add(isCorrect ? "correct" : "wrong");
+          input.disabled = true;
+        }
+        if (isCorrect) { delete state.weak[item.qid]; correct++; }
+      });
+      saveState();
+      updateTopbar();
+      scoreNode.textContent = correct + "/" + list.length;
+      const remaining = countWeak();
+      const banner = el("div", { class: "result-banner show " + (remaining === 0 ? "ok" : "err") });
+      banner.innerHTML = remaining === 0
+        ? "🎉 <b>" + t("reviewPassedAll") + "</b>"
+        : "<b>" + t("reviewRemaining") + ": " + remaining + "</b>";
+      foot.before(banner);
+      checkBtn.disabled = true;
+      foot.appendChild(el("button", { class: "btn", text: "↻ " + t("reviewWeak"), onclick: () => goTo({ view: "review" }) }));
+    });
   }
 
   /* ---------- Osiągnięcia: modal ---------- */
@@ -692,6 +842,7 @@
       xp: state.xp,
       completed: state.completed,
       achievements: state.achievements,
+      weak: state.weak,
       streak: state.streak,
       bestStreak: state.bestStreak,
       labsPassed: state.labsPassed,
@@ -712,6 +863,7 @@
     const out = Object.assign({}, localS);
     out.completed = Object.assign({}, localS.completed || {}, remoteS.completed || {});
     out.achievements = Object.assign({}, localS.achievements || {}, remoteS.achievements || {});
+    out.weak = Object.assign({}, localS.weak || {}, remoteS.weak || {});
     out.bestStreak = Math.max(localS.bestStreak || 0, remoteS.bestStreak || 0);
     out.streak = Math.max(localS.streak || 0, remoteS.streak || 0);
     out.lang = localS.lang || remoteS.lang || "pl";

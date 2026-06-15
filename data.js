@@ -80,6 +80,18 @@ const I18N = {
     fillEmailPass: "Podaj adres e-mail i hasło.",
     cloudOnBtn: "W chmurze",
     syncSecurityNote: "Twoje dane chroni mechanizm RLS — każdy użytkownik widzi wyłącznie własne postępy.",
+    cheatsheet: "Ściąga",
+    cheatsheetFor: "Ściąga",
+    reviewWeak: "Powtórka błędów",
+    reviewWeakDesc: "Przećwicz pytania z quizów, w których się pomyliłeś.",
+    weakQuestions: "pytań do powtórki",
+    noWeak: "Brak słabych pytań — świetna robota! 🎉",
+    startReview: "Rozpocznij powtórkę",
+    checkReview: "Sprawdź powtórkę",
+    reviewPassedAll: "Wszystkie powtórzone pytania poprawne! 🎉",
+    reviewRemaining: "Pozostało do opanowania",
+    fromQuiz: "z quizu",
+    backToHome: "← Strona główna",
   },
   en: {
     bootLoading: "Loading the TypeScript engine…",
@@ -156,6 +168,18 @@ const I18N = {
     fillEmailPass: "Enter an email and password.",
     cloudOnBtn: "Cloud on",
     syncSecurityNote: "Your data is protected by RLS — each user can only see their own progress.",
+    cheatsheet: "Cheatsheet",
+    cheatsheetFor: "Cheatsheet",
+    reviewWeak: "Mistake review",
+    reviewWeakDesc: "Practice the quiz questions you got wrong.",
+    weakQuestions: "questions to review",
+    noWeak: "No weak questions — great job! 🎉",
+    startReview: "Start review",
+    checkReview: "Check review",
+    reviewPassedAll: "All reviewed questions correct! 🎉",
+    reviewRemaining: "Still to master",
+    fromQuiz: "from quiz",
+    backToHome: "← Home",
   },
 };
 
@@ -1503,6 +1527,118 @@ const ACHIEVEMENTS = [
   { id: "perfect-quiz", icon: "💯", title: { pl: "Perfekcjonista", en: "Perfectionist" }, desc: { pl: "Zalicz quiz bez żadnego błędu.", en: "Pass a quiz with no mistakes." } },
   { id: "graduate", icon: "🎓", title: { pl: "Absolwent", en: "Graduate" }, desc: { pl: "Ukończ cały kurs TypeQuest.", en: "Complete the entire TypeQuest course." } },
 ];
+
+/* ---------- Ściągi (cheatsheety) do każdego poziomu ---------- */
+const CHEATSHEETS = {
+  beginner: {
+    pl:
+      "<h3>Adnotacje typów</h3>" +
+      codeBlock('let imie: string = "Ada";\nlet wiek: number = 30;\nlet aktywny: boolean = true;\nlet lista: number[] = [1, 2, 3];') +
+      "<h3>Funkcje</h3>" +
+      codeBlock("function dodaj(a: number, b: number): number {\n  return a + b;\n}\nconst podwoj = (x: number): number => x * 2;\nfunction loguj(): void {}") +
+      "<h3>Parametry opcjonalne / domyślne</h3>" +
+      codeBlock('function powitaj(imie: string, znak: string = "!"): string {\n  return "Cześć " + imie + znak;\n}') +
+      "<h3>Interfejsy</h3>" +
+      codeBlock("interface Uzytkownik {\n  imie: string;\n  wiek: number;\n  email?: string;   // opcjonalne\n  readonly id: number; // tylko do odczytu\n}"),
+    en:
+      "<h3>Type annotations</h3>" +
+      codeBlock('let name: string = "Ada";\nlet age: number = 30;\nlet active: boolean = true;\nlet list: number[] = [1, 2, 3];') +
+      "<h3>Functions</h3>" +
+      codeBlock("function add(a: number, b: number): number {\n  return a + b;\n}\nconst double = (x: number): number => x * 2;\nfunction log(): void {}") +
+      "<h3>Optional / default params</h3>" +
+      codeBlock('function greet(name: string, mark: string = "!"): string {\n  return "Hi " + name + mark;\n}') +
+      "<h3>Interfaces</h3>" +
+      codeBlock("interface User {\n  name: string;\n  age: number;\n  email?: string;   // optional\n  readonly id: number; // read-only\n}"),
+  },
+  intermediate: {
+    pl:
+      "<h3>Klasy</h3>" +
+      codeBlock("class Konto {\n  constructor(private saldo: number) {}\n  wplac(k: number): void { this.saldo += k; }\n  stan(): number { return this.saldo; }\n}") +
+      "<h3>Generyki</h3>" +
+      codeBlock("function pierwszy<T>(t: T[]): T { return t[0]; }\ninterface Pudelko<T> { zawartosc: T; }") +
+      "<h3>Union i literały</h3>" +
+      codeBlock('type Status = "aktywny" | "zawieszony";\nfunction f(x: string | number) {\n  if (typeof x === "number") return x.toFixed(2);\n  return x.toUpperCase();\n}') +
+      "<h3>async / await</h3>" +
+      codeBlock("async function uruchom(): Promise<void> {\n  const w = await pobierz();\n  console.log(w);\n}"),
+    en:
+      "<h3>Classes</h3>" +
+      codeBlock("class Account {\n  constructor(private balance: number) {}\n  deposit(a: number): void { this.balance += a; }\n  state(): number { return this.balance; }\n}") +
+      "<h3>Generics</h3>" +
+      codeBlock("function first<T>(t: T[]): T { return t[0]; }\ninterface Box<T> { content: T; }") +
+      "<h3>Unions & literals</h3>" +
+      codeBlock('type Status = "active" | "suspended";\nfunction f(x: string | number) {\n  if (typeof x === "number") return x.toFixed(2);\n  return x.toUpperCase();\n}') +
+      "<h3>async / await</h3>" +
+      codeBlock("async function run(): Promise<void> {\n  const r = await fetchData();\n  console.log(r);\n}"),
+  },
+  advanced: {
+    pl:
+      "<h3>Utility types</h3>" +
+      codeBlock('Partial<T>   // wszystkie pola opcjonalne\nRequired<T>  // wszystkie wymagane\nReadonly<T>  // tylko do odczytu\nPick<T, K>   // wybrane klucze\nOmit<T, K>   // bez wskazanych kluczy\nRecord<K, V> // mapa K -> V') +
+      "<h3>Typy warunkowe + infer</h3>" +
+      codeBlock('type Czy<T> = T extends any[] ? "tak" : "nie";\ntype Element<T> = T extends (infer U)[] ? U : never;') +
+      "<h3>Typy mapowane</h3>" +
+      codeBlock("type Opcjonalne<T> = { [K in keyof T]?: T[K] };") +
+      "<h3>Dekoratory</h3>" +
+      codeBlock("function loguj(t: any, k: string, o: PropertyDescriptor) {\n  const org = o.value;\n  o.value = function (...a: any[]) {\n    console.log(k);\n    return org.apply(this, a);\n  };\n}"),
+    en:
+      "<h3>Utility types</h3>" +
+      codeBlock('Partial<T>   // all fields optional\nRequired<T>  // all required\nReadonly<T>  // read-only\nPick<T, K>   // selected keys\nOmit<T, K>   // without listed keys\nRecord<K, V> // map K -> V') +
+      "<h3>Conditional types + infer</h3>" +
+      codeBlock('type Is<T> = T extends any[] ? "yes" : "no";\ntype Element<T> = T extends (infer U)[] ? U : never;') +
+      "<h3>Mapped types</h3>" +
+      codeBlock("type Optional<T> = { [K in keyof T]?: T[K] };") +
+      "<h3>Decorators</h3>" +
+      codeBlock("function log(t: any, k: string, d: PropertyDescriptor) {\n  const org = d.value;\n  d.value = function (...a: any[]) {\n    console.log(k);\n    return org.apply(this, a);\n  };\n}"),
+  },
+  pro: {
+    pl:
+      "<h3>Enumy i as const</h3>" +
+      codeBlock('const ROLE = ["admin", "user"] as const;\ntype Rola = typeof ROLE[number]; // "admin" | "user"') +
+      "<h3>Zawężanie i strażniki</h3>" +
+      codeBlock('function jestTekstem(x: unknown): x is string {\n  return typeof x === "string";\n}') +
+      "<h3>Discriminated union + never</h3>" +
+      codeBlock('switch (e.kind) {\n  case "a": return ...;\n  default: const _w: never = e; return _w;\n}') +
+      "<h3>unknown vs any</h3>" +
+      codeBlock('const d: unknown = JSON.parse(s); // waliduj przed użyciem') +
+      "<h3>Generyki z ograniczeniem + Result</h3>" +
+      codeBlock("function get<T, K extends keyof T>(o: T, k: K): T[K] { return o[k]; }\ntype Wynik<T> = { ok: true; dane: T } | { ok: false; blad: string };"),
+    en:
+      "<h3>Enums & as const</h3>" +
+      codeBlock('const ROLE = ["admin", "user"] as const;\ntype Role = typeof ROLE[number]; // "admin" | "user"') +
+      "<h3>Narrowing & guards</h3>" +
+      codeBlock('function isText(x: unknown): x is string {\n  return typeof x === "string";\n}') +
+      "<h3>Discriminated union + never</h3>" +
+      codeBlock('switch (e.kind) {\n  case "a": return ...;\n  default: const _e: never = e; return _e;\n}') +
+      "<h3>unknown vs any</h3>" +
+      codeBlock('const d: unknown = JSON.parse(s); // validate before use') +
+      "<h3>Constrained generics + Result</h3>" +
+      codeBlock("function get<T, K extends keyof T>(o: T, k: K): T[K] { return o[k]; }\ntype Result<T> = { ok: true; data: T } | { ok: false; error: string };"),
+  },
+  qa: {
+    pl:
+      "<h3>Async w testach</h3>" +
+      codeBlock("await Promise.all([a(), b()]);       // równolegle\nawait Promise.allSettled([a(), b()]); // czeka na wszystkie\nfor (const z of zadania) await z();   // sekwencyjnie") +
+      "<h3>Retry</h3>" +
+      codeBlock("async function ponow<T>(fn: () => Promise<T>, n: number): Promise<T> {\n  let ost: unknown;\n  for (let i = 0; i < n; i++) {\n    try { return await fn(); } catch (e) { ost = e; }\n  }\n  throw ost;\n}") +
+      "<h3>Polling (waitFor)</h3>" +
+      codeBlock("while (Date.now() < koniec) {\n  if (warunek()) return;\n  await sleep(interval);\n}\nthrow new Error(\"timeout\");") +
+      "<h3>Page Object Model</h3>" +
+      codeBlock("class Strona {\n  constructor(protected sel: Record<string, string>) {}\n  selektor(n: string) {\n    if (!this.sel[n]) throw new Error(n);\n    return this.sel[n];\n  }\n}") +
+      "<h3>Fixture + asercja</h3>" +
+      codeBlock("function buduj(nad: Partial<User> = {}): User {\n  return { id: 1, imie: \"Test\", ...nad };\n}\nfunction assert(w: boolean, m: string): asserts w {\n  if (!w) throw new Error(m);\n}"),
+    en:
+      "<h3>Async in tests</h3>" +
+      codeBlock("await Promise.all([a(), b()]);       // parallel\nawait Promise.allSettled([a(), b()]); // wait for all\nfor (const t of tasks) await t();     // sequential") +
+      "<h3>Retry</h3>" +
+      codeBlock("async function retry<T>(fn: () => Promise<T>, n: number): Promise<T> {\n  let last: unknown;\n  for (let i = 0; i < n; i++) {\n    try { return await fn(); } catch (e) { last = e; }\n  }\n  throw last;\n}") +
+      "<h3>Polling (waitFor)</h3>" +
+      codeBlock("while (Date.now() < end) {\n  if (condition()) return;\n  await sleep(interval);\n}\nthrow new Error(\"timeout\");") +
+      "<h3>Page Object Model</h3>" +
+      codeBlock("class Page {\n  constructor(protected sel: Record<string, string>) {}\n  selector(n: string) {\n    if (!this.sel[n]) throw new Error(n);\n    return this.sel[n];\n  }\n}") +
+      "<h3>Fixture + assertion</h3>" +
+      codeBlock("function build(over: Partial<User> = {}): User {\n  return { id: 1, name: \"Test\", ...over };\n}\nfunction assert(c: boolean, m: string): asserts c {\n  if (!c) throw new Error(m);\n}"),
+  },
+};
 
 /* XP wymagane na kolejne poziomy gracza (skala) */
 const XP_PER_LEVEL = 120;
