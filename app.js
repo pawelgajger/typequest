@@ -132,6 +132,8 @@
     if (levelCompleted(0)) unlockAchievement("beginner-done");
     if (levelCompleted(1)) unlockAchievement("intermediate-done");
     if (levelCompleted(2)) unlockAchievement("advanced-done");
+    if (COURSE[3] && levelCompleted(3)) unlockAchievement("pro-done");
+    if (COURSE[4] && levelCompleted(4)) unlockAchievement("qa-done");
     if (state.bestStreak >= 5) unlockAchievement("streak-5");
     if (state.labsPassed >= 5) unlockAchievement("lab-ace");
     if (COURSE.every((_, i) => levelCompleted(i))) unlockAchievement("graduate");

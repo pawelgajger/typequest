@@ -860,6 +860,634 @@ const COURSE = [
       },
     ],
   },
+
+  /* ============================ TYPESCRIPT PRO ============================ */
+  {
+    id: "pro",
+    name: { pl: "TypeScript Pro", en: "TypeScript Pro" },
+    desc: {
+      pl: "Type guards, zawężanie typów, unknown, zaawansowane generyki i obsługa błędów — fundament profesjonalnego, bezpiecznego kodu.",
+      en: "Type guards, narrowing, unknown, advanced generics and error handling — the foundation of professional, safe code.",
+    },
+    modules: [
+      {
+        id: "p-l1",
+        type: "lesson",
+        xp: 30,
+        title: { pl: "Enumy i const assertions", en: "Enums & const assertions" },
+        body: {
+          pl:
+            "<p>Do zbiorów stałych wartości (statusy testów, role, środowiska) używamy <b>enumów</b> albo — częściej w nowoczesnym kodzie — tablic/obiektów z <code>as const</code>.</p>" +
+            codeBlock("enum Status {\n  Passed = \"passed\",\n  Failed = \"failed\",\n}\n\n// Nowoczesne podejście: literały + as const\nconst ROLE = [\"admin\", \"user\", \"guest\"] as const;\ntype Rola = typeof ROLE[number]; // \"admin\" | \"user\" | \"guest\"") +
+            "<p><code>as const</code> „zamraża\" wartości i zawęża ich typ do dokładnych literałów. Idealne do danych testowych i konfiguracji.</p>" +
+            '<div class="note">W automatyzacji testów literały (np. lista dozwolonych statusów) pozwalają kompilatorowi wyłapać literówkę, zanim test się uruchomi.</div>',
+          en:
+            "<p>For fixed sets of values (test statuses, roles, environments) we use <b>enums</b> or — more often in modern code — arrays/objects with <code>as const</code>.</p>" +
+            codeBlock("enum Status {\n  Passed = \"passed\",\n  Failed = \"failed\",\n}\n\n// Modern approach: literals + as const\nconst ROLE = [\"admin\", \"user\", \"guest\"] as const;\ntype Role = typeof ROLE[number]; // \"admin\" | \"user\" | \"guest\"") +
+            "<p><code>as const</code> freezes the values and narrows their type to exact literals. Perfect for test data and config.</p>" +
+            '<div class="note">In test automation, literals (e.g. a list of allowed statuses) let the compiler catch a typo before the test even runs.</div>',
+        },
+      },
+      {
+        id: "p-lab1",
+        type: "lab",
+        xp: 55,
+        title: { pl: "Dozwolone statusy", en: "Allowed statuses" },
+        prompt: {
+          pl: "Utwórz stałą <code>STATUSY</code> (z <code>as const</code>) z wartościami <code>\"passed\"</code>, <code>\"failed\"</code>, <code>\"skipped\"</code> oraz funkcję <code>czyStatus(x)</code> zwracającą, czy podany tekst jest jednym z dozwolonych statusów.",
+          en: "Create a constant <code>STATUSES</code> (with <code>as const</code>) holding <code>\"passed\"</code>, <code>\"failed\"</code>, <code>\"skipped\"</code> and a function <code>isStatus(x)</code> returning whether a given text is one of the allowed statuses.",
+        },
+        tasks: [
+          { desc: { pl: "STATUSY ma 3 elementy", en: "STATUSES has 3 items" }, test: 'assert(Array.isArray(STATUSY) && STATUSY.length === 3, "STATUSY powinno mieć 3 elementy");' },
+          { desc: { pl: 'czyStatus("passed") === true', en: 'isStatus("passed") === true' }, test: 'assert(czyStatus("passed") === true, "passed jest dozwolonym statusem");' },
+          { desc: { pl: 'czyStatus("nieznany") === false', en: 'isStatus("unknown") === false' }, test: 'assert(czyStatus("nieznany") === false, "nieznany nie jest statusem");' },
+        ],
+        starter:
+          "const STATUSY = [] as const;\n\nfunction czyStatus(x: string): boolean {\n  // sprawdź, czy x jest jednym ze STATUSY\n  // check whether x is one of STATUSY\n  return false;\n}\n",
+        solution:
+          "const STATUSY = [\"passed\", \"failed\", \"skipped\"] as const;\n\nfunction czyStatus(x: string): boolean {\n  return (STATUSY as readonly string[]).includes(x);\n}",
+        hints: [
+          { pl: "Tablica ma metodę <code>includes(x)</code>.", en: "Arrays have an <code>includes(x)</code> method." },
+          { pl: "Aby użyć includes na tablicy <code>as const</code>, rzutuj ją na <code>readonly string[]</code>.", en: "To use includes on an <code>as const</code> array, cast it to <code>readonly string[]</code>." },
+        ],
+      },
+      {
+        id: "p-l2",
+        type: "lesson",
+        xp: 32,
+        title: { pl: "Zawężanie typów i type guards", en: "Narrowing & type guards" },
+        body: {
+          pl:
+            "<p>Zawężanie (narrowing) to proces, w którym kompilator zacieśnia typ na podstawie sprawdzeń: <code>typeof</code>, <code>instanceof</code>, <code>in</code> oraz <b>discriminated unions</b>.</p>" +
+            codeBlock("function opis(x: string | number): string {\n  if (typeof x === \"number\") return x.toFixed(1);\n  return x.trim(); // tutaj x to już string\n}") +
+            "<h3>Discriminated union + wyczerpanie (never)</h3>" +
+            codeBlock("type Zdarzenie =\n  | { typ: \"klik\"; x: number; y: number }\n  | { typ: \"klawisz\"; kod: string };\n\nfunction obsluz(e: Zdarzenie): string | number {\n  switch (e.typ) {\n    case \"klik\": return e.x + e.y;\n    case \"klawisz\": return e.kod;\n    default:\n      const _w: never = e; // błąd kompilacji, gdy dodasz nowy wariant\n      return _w;\n  }\n}") +
+            "<h3>Własny strażnik typu (type predicate)</h3>" +
+            codeBlock("function jestTablica(x: unknown): x is unknown[] {\n  return Array.isArray(x);\n}") +
+            '<div class="note">Zwrot <code>x is T</code> mówi kompilatorowi: „jeśli ta funkcja zwróci true, traktuj x jak typ T\". To filar bezpiecznej pracy z danymi z API.</div>',
+          en:
+            "<p>Narrowing is when the compiler tightens a type based on checks: <code>typeof</code>, <code>instanceof</code>, <code>in</code> and <b>discriminated unions</b>.</p>" +
+            codeBlock("function describe(x: string | number): string {\n  if (typeof x === \"number\") return x.toFixed(1);\n  return x.trim(); // here x is already string\n}") +
+            "<h3>Discriminated union + exhaustiveness (never)</h3>" +
+            codeBlock("type Event =\n  | { type: \"click\"; x: number; y: number }\n  | { type: \"key\"; code: string };\n\nfunction handle(e: Event): string | number {\n  switch (e.type) {\n    case \"click\": return e.x + e.y;\n    case \"key\": return e.code;\n    default:\n      const _e: never = e; // compile error when you add a new variant\n      return _e;\n  }\n}") +
+            "<h3>Custom type guard (type predicate)</h3>" +
+            codeBlock("function isArray(x: unknown): x is unknown[] {\n  return Array.isArray(x);\n}") +
+            '<div class="note">Returning <code>x is T</code> tells the compiler: “if this returns true, treat x as type T\". A pillar of safely handling API data.</div>',
+        },
+      },
+      {
+        id: "p-lab2",
+        type: "lab",
+        xp: 60,
+        title: { pl: "Discriminated union", en: "Discriminated union" },
+        prompt: {
+          pl: "Mamy typ <code>Figura</code> = koło lub prostokąt. Napisz funkcję <code>pole(f)</code>, która na podstawie pola <code>kind</code> liczy pole figury (koło: <code>π·r²</code>, prostokąt: <code>w·h</code>).",
+          en: "We have a type <code>Shape</code> = circle or rectangle. Write a function <code>area(f)</code> that, based on the <code>kind</code> field, computes the area (circle: <code>π·r²</code>, rectangle: <code>w·h</code>).",
+        },
+        tasks: [
+          { desc: { pl: 'pole({kind:"kolo", r:2}) ≈ π·4', en: 'area({kind:"circle", r:2}) ≈ π·4' }, test: 'assert(Math.abs(pole({ kind: "kolo", r: 2 }) - Math.PI * 4) < 1e-9, "Pole koła dla r=2");' },
+          { desc: { pl: 'pole({kind:"prostokat", w:3, h:4}) === 12', en: 'area({kind:"rect", w:3, h:4}) === 12' }, test: 'assert(pole({ kind: "prostokat", w: 3, h: 4 }) === 12, "Pole prostokąta 3×4 = 12");' },
+        ],
+        starter:
+          "type Figura =\n  | { kind: \"kolo\"; r: number }\n  | { kind: \"prostokat\"; w: number; h: number };\n\nfunction pole(f: Figura): number {\n  // rozróżnij warianty po f.kind\n  // switch on f.kind\n  return 0;\n}\n",
+        solution:
+          "type Figura =\n  | { kind: \"kolo\"; r: number }\n  | { kind: \"prostokat\"; w: number; h: number };\n\nfunction pole(f: Figura): number {\n  switch (f.kind) {\n    case \"kolo\": return Math.PI * f.r * f.r;\n    case \"prostokat\": return f.w * f.h;\n  }\n}",
+        hints: [
+          { pl: "Użyj <code>switch (f.kind)</code> — w każdej gałęzi TypeScript zna dokładny kształt obiektu.", en: "Use <code>switch (f.kind)</code> — in each branch TypeScript knows the exact shape." },
+          { pl: "Pole koła to <code>Math.PI * r * r</code>.", en: "Circle area is <code>Math.PI * r * r</code>." },
+        ],
+      },
+      {
+        id: "p-lab3",
+        type: "lab",
+        xp: 60,
+        title: { pl: "Strażnik typu", en: "Type guard" },
+        prompt: {
+          pl: "Napisz strażnik <code>jestTekstem(x): x is string</code> oraz funkcję <code>bezpiecznyUpper(x)</code>, która zwraca tekst wielkimi literami, gdy <code>x</code> jest stringiem, a w przeciwnym razie pusty string.",
+          en: "Write a guard <code>isText(x): x is string</code> and a function <code>safeUpper(x)</code> that returns the uppercased text when <code>x</code> is a string, otherwise an empty string.",
+        },
+        tasks: [
+          { desc: { pl: 'jestTekstem("abc") === true, jestTekstem(123) === false', en: 'isText("abc") === true, isText(123) === false' }, test: 'assert(jestTekstem("abc") === true && jestTekstem(123) === false, "Strażnik powinien rozpoznawać tylko string");' },
+          { desc: { pl: 'bezpiecznyUpper("abc") === "ABC"', en: 'safeUpper("abc") === "ABC"' }, test: 'assert(bezpiecznyUpper("abc") === "ABC", "Dla tekstu wielkie litery");' },
+          { desc: { pl: 'bezpiecznyUpper(123) === ""', en: 'safeUpper(123) === ""' }, test: 'assert(bezpiecznyUpper(123) === "", "Dla nie-tekstu pusty string");' },
+        ],
+        starter:
+          "function jestTekstem(x: unknown): x is string {\n  // zwróć true tylko dla stringa\n  return false;\n}\n\nfunction bezpiecznyUpper(x: unknown): string {\n  // użyj strażnika, by bezpiecznie wywołać toUpperCase()\n  return \"\";\n}\n",
+        solution:
+          "function jestTekstem(x: unknown): x is string {\n  return typeof x === \"string\";\n}\n\nfunction bezpiecznyUpper(x: unknown): string {\n  return jestTekstem(x) ? x.toUpperCase() : \"\";\n}",
+        hints: [
+          { pl: "Strażnik: <code>return typeof x === \"string\";</code>", en: "Guard: <code>return typeof x === \"string\";</code>" },
+          { pl: "Po sprawdzeniu strażnikiem możesz bezpiecznie wołać <code>x.toUpperCase()</code>.", en: "After the guard check you can safely call <code>x.toUpperCase()</code>." },
+        ],
+      },
+      {
+        id: "p-q1",
+        type: "quiz",
+        xp: 40,
+        title: { pl: "Quiz: zawężanie i strażniki", en: "Quiz: narrowing & guards" },
+        passRatio: 0.66,
+        questions: [
+          {
+            type: "mc",
+            q: { pl: "Jak nazywa się wspólne pole, po którym rozróżniamy warianty w discriminated union?", en: "What is the shared field used to distinguish variants in a discriminated union called?" },
+            options: [
+              { pl: "Dyskryminator (np. <code>kind</code>/<code>type</code>)", en: "Discriminant (e.g. <code>kind</code>/<code>type</code>)" },
+              { pl: "Konstruktor", en: "Constructor" },
+              { pl: "Dekorator", en: "Decorator" },
+              { pl: "Generyk", en: "Generic" },
+            ],
+            answer: 0,
+            explain: { pl: "To pole-dyskryminator (np. literał w <code>kind</code>) pozwala kompilatorowi zawęzić typ w każdej gałęzi.", en: "The discriminant field (e.g. a literal in <code>kind</code>) lets the compiler narrow the type in each branch." },
+          },
+          {
+            type: "mc",
+            q: { pl: "Co daje przypisanie <code>const _w: never = e;</code> w gałęzi <code>default</code> switcha?", en: "What does <code>const _e: never = e;</code> in a switch <code>default</code> give you?" },
+            options: [
+              { pl: "Przyspiesza działanie", en: "Speeds things up" },
+              { pl: "Sprawdzenie wyczerpania — błąd, gdy zapomnisz obsłużyć nowy wariant", en: "Exhaustiveness check — an error if you forget to handle a new variant" },
+              { pl: "Tworzy nowy typ", en: "Creates a new type" },
+              { pl: "Nic, to błąd", en: "Nothing, it's a bug" },
+            ],
+            answer: 1,
+            explain: { pl: "Jeśli dodasz nowy wariant unii i go nie obsłużysz, <code>e</code> nie będzie <code>never</code> i kompilator zgłosi błąd.", en: "If you add a new union variant and don't handle it, <code>e</code> won't be <code>never</code> and the compiler errors." },
+          },
+          {
+            type: "fill",
+            q: { pl: "Uzupełnij sygnaturę strażnika typu: <code>function isFoo(x: unknown): x ___ Foo</code>", en: "Fill in the type guard signature: <code>function isFoo(x: unknown): x ___ Foo</code>" },
+            answer: ["is"],
+            explain: { pl: "Predykat typu zapisujemy jako <code>x is T</code>.", en: "A type predicate is written as <code>x is T</code>." },
+          },
+        ],
+      },
+      {
+        id: "p-l3",
+        type: "lesson",
+        xp: 32,
+        title: { pl: "unknown vs any i walidacja danych", en: "unknown vs any & data validation" },
+        body: {
+          pl:
+            "<p><code>any</code> wyłącza sprawdzanie typów — to „ucieczka\", która rozsadza bezpieczeństwo. <code>unknown</code> jest bezpieczną wersją: też przyjmie wszystko, ale <b>zanim go użyjesz, musisz zawęzić typ</b>.</p>" +
+            codeBlock("const dane: unknown = JSON.parse(odpowiedz);\n\n// dane.imie;  // BŁĄD — unknown trzeba najpierw zawęzić\nif (typeof dane === \"object\" && dane !== null && \"imie\" in dane) {\n  // dopiero teraz bezpieczny dostęp\n}") +
+            '<div class="note warn">Dane z API, <code>JSON.parse</code>, parametry CLI — traktuj je jako <code>unknown</code> i waliduj. To różnica między testem, który pada z czytelnym komunikatem, a takim, który „cicho\" robi coś złego.</div>' +
+            "<p>W produkcyjnych frameworkach do walidacji używa się bibliotek jak <code>zod</code>, ale zasada jest ta sama: nieufne dane → walidacja → typ.</p>",
+          en:
+            "<p><code>any</code> turns off type checking — an “escape hatch\" that blows up safety. <code>unknown</code> is its safe version: it also accepts anything, but <b>you must narrow the type before using it</b>.</p>" +
+            codeBlock("const data: unknown = JSON.parse(response);\n\n// data.name;  // ERROR — unknown must be narrowed first\nif (typeof data === \"object\" && data !== null && \"name\" in data) {\n  // only now is access safe\n}") +
+            '<div class="note warn">API data, <code>JSON.parse</code>, CLI args — treat them as <code>unknown</code> and validate. That is the difference between a test that fails with a clear message and one that silently does the wrong thing.</div>' +
+            "<p>Production frameworks use validation libraries like <code>zod</code>, but the principle is the same: untrusted data → validation → type.</p>",
+        },
+      },
+      {
+        id: "p-lab4",
+        type: "lab",
+        xp: 70,
+        title: { pl: "Walidacja odpowiedzi", en: "Response validation" },
+        prompt: {
+          pl: "Napisz <code>parseUzytkownik(dane: unknown)</code>, który sprawdza, że <code>dane</code> to obiekt z polem <code>imie</code> (string) i <code>wiek</code> (number). Gdy dane są poprawne — zwróć obiekt; gdy nie — rzuć <code>Error</code>.",
+          en: "Write <code>parseUser(data: unknown)</code> that checks <code>data</code> is an object with <code>name</code> (string) and <code>age</code> (number). When valid — return the object; otherwise — throw an <code>Error</code>.",
+        },
+        tasks: [
+          { desc: { pl: "Poprawne dane zwracają obiekt", en: "Valid data returns the object" }, test: 'const u = parseUzytkownik({ imie: "Ada", wiek: 30 }); assert(u.imie === "Ada" && u.wiek === 30, "Powinno zwrócić poprawny obiekt");' },
+          { desc: { pl: "Brak pola wiek → wyjątek", en: "Missing age → throws" }, test: 'let z = false; try { parseUzytkownik({ imie: "Ada" }); } catch (e) { z = true; } assert(z, "Brak pola wiek powinien rzucić błąd");' },
+          { desc: { pl: "Wartość nie-obiektowa → wyjątek", en: "Non-object value → throws" }, test: 'let z2 = false; try { parseUzytkownik("tekst"); } catch (e) { z2 = true; } assert(z2, "Nie-obiekt powinien rzucić błąd");' },
+        ],
+        starter:
+          "function parseUzytkownik(dane: unknown): { imie: string; wiek: number } {\n  // 1) sprawdź, że dane to obiekt (i nie null)\n  // 2) sprawdź typy pól imie i wiek\n  // 3) zwróć obiekt lub rzuć Error\n  throw new Error(\"Niezaimplementowane\");\n}\n",
+        solution:
+          "function parseUzytkownik(dane: unknown): { imie: string; wiek: number } {\n  if (typeof dane !== \"object\" || dane === null) {\n    throw new Error(\"Oczekiwano obiektu\");\n  }\n  const o = dane as Record<string, unknown>;\n  if (typeof o.imie !== \"string\") throw new Error(\"Pole imie musi być tekstem\");\n  if (typeof o.wiek !== \"number\") throw new Error(\"Pole wiek musi być liczbą\");\n  return { imie: o.imie, wiek: o.wiek };\n}",
+        hints: [
+          { pl: "Najpierw: <code>if (typeof dane !== \"object\" || dane === null) throw ...</code>", en: "First: <code>if (typeof data !== \"object\" || data === null) throw ...</code>" },
+          { pl: "Rzutuj na <code>Record&lt;string, unknown&gt;</code>, by odczytać pola, a potem sprawdź ich <code>typeof</code>.", en: "Cast to <code>Record&lt;string, unknown&gt;</code> to read fields, then check their <code>typeof</code>." },
+        ],
+      },
+      {
+        id: "p-l4",
+        type: "lesson",
+        xp: 33,
+        title: { pl: "Zaawansowane generyki", en: "Advanced generics" },
+        body: {
+          pl:
+            "<p>Generyki w praktyce: <b>ograniczenia</b> (<code>extends</code>), <b>typy domyślne</b> i <b>klasy generyczne</b> — to one budują wielorazowe utilsy w frameworku testowym.</p>" +
+            codeBlock("// Ograniczenie: T musi być obiektem\nfunction pierwszyKlucz<T extends object>(o: T): keyof T {\n  return Object.keys(o)[0] as keyof T;\n}\n\n// Typ domyślny generyka\nclass Kolejka<T = string> {\n  private items: T[] = [];\n  dodaj(x: T): void { this.items.push(x); }\n  pobierz(): T | undefined { return this.items.shift(); }\n}") +
+            '<div class="note">Ograniczenie <code>K extends keyof T</code> jest sercem typowanych helperów (jak <code>get(obj, key)</code>) — gwarantuje, że klucz naprawdę istnieje w obiekcie.</div>',
+          en:
+            "<p>Generics in practice: <b>constraints</b> (<code>extends</code>), <b>default types</b> and <b>generic classes</b> — these build reusable utilities in a test framework.</p>" +
+            codeBlock("// Constraint: T must be an object\nfunction firstKey<T extends object>(o: T): keyof T {\n  return Object.keys(o)[0] as keyof T;\n}\n\n// Default generic type\nclass Queue<T = string> {\n  private items: T[] = [];\n  add(x: T): void { this.items.push(x); }\n  take(): T | undefined { return this.items.shift(); }\n}") +
+            '<div class="note">The constraint <code>K extends keyof T</code> is the heart of typed helpers (like <code>get(obj, key)</code>) — it guarantees the key really exists on the object.</div>',
+        },
+      },
+      {
+        id: "p-lab5",
+        type: "lab",
+        xp: 70,
+        title: { pl: "Generyczny stos", en: "Generic stack" },
+        prompt: {
+          pl: "Zaimplementuj generyczną klasę <code>Stos&lt;T&gt;</code> z metodami: <code>push(x)</code>, <code>pop()</code> (zwraca <code>T | undefined</code>), <code>peek()</code> (podgląd szczytu) i <code>rozmiar()</code>.",
+          en: "Implement a generic class <code>Stack&lt;T&gt;</code> with methods: <code>push(x)</code>, <code>pop()</code> (returns <code>T | undefined</code>), <code>peek()</code> (look at the top) and <code>size()</code>.",
+        },
+        tasks: [
+          { desc: { pl: "Po dwóch push rozmiar() === 2", en: "After two pushes size() === 2" }, test: 'const s = new Stos<number>(); s.push(1); s.push(2); assert(s.rozmiar() === 2, "Rozmiar powinien być 2");' },
+          { desc: { pl: "peek() zwraca szczyt, nie usuwając", en: "peek() returns the top without removing" }, test: 'const s2 = new Stos<number>(); s2.push(10); assert(s2.peek() === 10 && s2.rozmiar() === 1, "peek nie powinien usuwać");' },
+          { desc: { pl: "pop() zdejmuje element; pop pustego → undefined", en: "pop() removes the item; pop of empty → undefined" }, test: 'const s3 = new Stos<string>(); s3.push("a"); assert(s3.pop() === "a", "pop zwraca element"); assert(s3.pop() === undefined, "pop pustego to undefined");' },
+        ],
+        starter:
+          "class Stos<T> {\n  private elementy: T[] = [];\n  // zaimplementuj push, pop, peek, rozmiar\n}\n",
+        solution:
+          "class Stos<T> {\n  private elementy: T[] = [];\n  push(x: T): void { this.elementy.push(x); }\n  pop(): T | undefined { return this.elementy.pop(); }\n  peek(): T | undefined { return this.elementy[this.elementy.length - 1]; }\n  rozmiar(): number { return this.elementy.length; }\n}",
+        hints: [
+          { pl: "Trzymaj dane w prywatnej tablicy i deleguj do jej metod <code>push</code>/<code>pop</code>.", en: "Keep data in a private array and delegate to its <code>push</code>/<code>pop</code>." },
+          { pl: "Szczyt to <code>elementy[elementy.length - 1]</code>.", en: "The top is <code>items[items.length - 1]</code>." },
+        ],
+      },
+      {
+        id: "p-l5",
+        type: "lesson",
+        xp: 33,
+        title: { pl: "Obsługa błędów i wzorzec Result", en: "Error handling & the Result pattern" },
+        body: {
+          pl:
+            "<p>Profesjonalny kod nie tylko rzuca wyjątki — modeluje błędy w typach. Dwa filary: <b>własne klasy błędów</b> i <b>wzorzec Result</b>.</p>" +
+            codeBlock("class BladWalidacji extends Error {\n  constructor(public pole: string) {\n    super(\"Niepoprawne pole: \" + pole);\n    this.name = \"BladWalidacji\";\n  }\n}\n\n// Result: błąd jako wartość, nie wyjątek\ntype Wynik<T> =\n  | { ok: true; dane: T }\n  | { ok: false; blad: string };") +
+            "<p>Dzięki <code>Wynik&lt;T&gt;</code> wywołujący <b>musi</b> sprawdzić <code>ok</code>, zanim sięgnie po dane — kompilator go do tego zmusza.</p>" +
+            '<div class="note">W testach to złoto: zamiast łapać wyjątki w wielu miejscach, zwracasz przewidywalny obiekt wyniku i czytelnie go asercjonujesz.</div>',
+          en:
+            "<p>Professional code doesn't just throw — it models errors in types. Two pillars: <b>custom error classes</b> and the <b>Result pattern</b>.</p>" +
+            codeBlock("class ValidationError extends Error {\n  constructor(public field: string) {\n    super(\"Invalid field: \" + field);\n    this.name = \"ValidationError\";\n  }\n}\n\n// Result: error as a value, not an exception\ntype Result<T> =\n  | { ok: true; data: T }\n  | { ok: false; error: string };") +
+            "<p>With <code>Result&lt;T&gt;</code> the caller <b>must</b> check <code>ok</code> before touching the data — the compiler forces it.</p>" +
+            '<div class="note">In tests this is gold: instead of catching exceptions everywhere, you return a predictable result object and assert on it cleanly.</div>',
+        },
+      },
+      {
+        id: "p-lab6",
+        type: "lab",
+        xp: 75,
+        title: { pl: "Bezpieczny JSON (Result)", en: "Safe JSON (Result)" },
+        prompt: {
+          pl: "Zaimplementuj <code>bezpiecznyJSON&lt;T&gt;(tekst)</code>, który próbuje sparsować JSON. Sukces → <code>{ ok: true, dane }</code>; błąd → <code>{ ok: false, blad }</code> (komunikat błędu). Bez rzucania wyjątku na zewnątrz.",
+          en: "Implement <code>safeJSON&lt;T&gt;(text)</code> that tries to parse JSON. Success → <code>{ ok: true, data }</code>; failure → <code>{ ok: false, error }</code> (the error message). Without throwing to the outside.",
+        },
+        tasks: [
+          { desc: { pl: "Poprawny JSON → ok:true i sparsowane dane", en: "Valid JSON → ok:true and parsed data" }, test: 'const r = bezpiecznyJSON("{\\"a\\":1}"); assert(r.ok === true, "ok powinno być true"); assert(r.ok === true && r.dane.a === 1, "Powinno sparsować pole a");' },
+          { desc: { pl: "Niepoprawny JSON → ok:false i komunikat", en: "Invalid JSON → ok:false and a message" }, test: 'const r2 = bezpiecznyJSON("{zepsuty}"); assert(r2.ok === false, "ok powinno być false"); assert(r2.ok === false && typeof r2.blad === "string" && r2.blad.length > 0, "Powinien być komunikat błędu");' },
+        ],
+        starter:
+          "type Wynik<T> = { ok: true; dane: T } | { ok: false; blad: string };\n\nfunction bezpiecznyJSON<T>(tekst: string): Wynik<T> {\n  // użyj try/catch wokół JSON.parse\n  return { ok: false, blad: \"Niezaimplementowane\" };\n}\n",
+        solution:
+          "type Wynik<T> = { ok: true; dane: T } | { ok: false; blad: string };\n\nfunction bezpiecznyJSON<T>(tekst: string): Wynik<T> {\n  try {\n    return { ok: true, dane: JSON.parse(tekst) as T };\n  } catch (e) {\n    return { ok: false, blad: (e as Error).message };\n  }\n}",
+        hints: [
+          { pl: "Owiń <code>JSON.parse(tekst)</code> w <code>try { ... } catch (e) { ... }</code>.", en: "Wrap <code>JSON.parse(text)</code> in <code>try { ... } catch (e) { ... }</code>." },
+          { pl: "W catch zwróć <code>{ ok: false, blad: (e as Error).message }</code>.", en: "In catch return <code>{ ok: false, error: (e as Error).message }</code>." },
+        ],
+      },
+      {
+        id: "p-q2",
+        type: "quiz",
+        xp: 45,
+        title: { pl: "Quiz: profesjonalny TypeScript", en: "Quiz: professional TypeScript" },
+        passRatio: 0.7,
+        questions: [
+          {
+            type: "mc",
+            q: { pl: "Czym różni się <code>unknown</code> od <code>any</code>?", en: "How does <code>unknown</code> differ from <code>any</code>?" },
+            options: [
+              { pl: "Niczym — to synonimy", en: "Nothing — they're synonyms" },
+              { pl: "<code>unknown</code> wymaga zawężenia typu, zanim go użyjesz; <code>any</code> wyłącza kontrolę", en: "<code>unknown</code> requires narrowing before use; <code>any</code> disables checking" },
+              { pl: "<code>unknown</code> jest tylko dla liczb", en: "<code>unknown</code> is only for numbers" },
+              { pl: "<code>any</code> jest bezpieczniejszy", en: "<code>any</code> is safer" },
+            ],
+            answer: 1,
+            explain: { pl: "<code>unknown</code> to bezpieczny odpowiednik <code>any</code> — zmusza do walidacji przed użyciem.", en: "<code>unknown</code> is the safe counterpart of <code>any</code> — it forces validation before use." },
+          },
+          {
+            type: "fill",
+            q: { pl: "Uzupełnij ograniczenie generyka „T musi być obiektem\": <code>&lt;T ___ object&gt;</code>", en: "Fill in the generic constraint “T must be an object\": <code>&lt;T ___ object&gt;</code>" },
+            answer: ["extends"],
+            explain: { pl: "Ograniczenia generyków zapisujemy słowem <code>extends</code>.", en: "Generic constraints use the <code>extends</code> keyword." },
+          },
+          {
+            type: "mc",
+            q: { pl: "Jak zamodelować „albo sukces z danymi, albo błąd\" bez rzucania wyjątku?", en: "How do you model “either success with data, or an error\" without throwing?" },
+            options: [
+              { pl: "Zwracać <code>any</code>", en: "Return <code>any</code>" },
+              { pl: "Typem unii (wzorzec Result), np. <code>{ ok: true; dane } | { ok: false; blad }</code>", en: "A union type (Result pattern), e.g. <code>{ ok: true; data } | { ok: false; error }</code>" },
+              { pl: "Globalną zmienną", en: "A global variable" },
+              { pl: "Dekoratorem", en: "A decorator" },
+            ],
+            answer: 1,
+            explain: { pl: "Wzorzec Result modeluje błąd jako wartość — wywołujący musi sprawdzić <code>ok</code>.", en: "The Result pattern models the error as a value — the caller must check <code>ok</code>." },
+          },
+          {
+            type: "mc",
+            q: { pl: "Po co tworzyć własną klasę dziedziczącą po <code>Error</code> (np. <code>BladWalidacji</code>)?", en: "Why create a custom class extending <code>Error</code> (e.g. <code>ValidationError</code>)?" },
+            options: [
+              { pl: "Żeby kod był dłuższy", en: "To make the code longer" },
+              { pl: "Aby rozróżniać rodzaje błędów (np. przez <code>instanceof</code>) i dołączać dodatkowe dane", en: "To distinguish error kinds (e.g. via <code>instanceof</code>) and attach extra data" },
+              { pl: "To wymóg składni", en: "It's a syntax requirement" },
+              { pl: "Żeby wyłączyć typy", en: "To disable types" },
+            ],
+            answer: 1,
+            explain: { pl: "Własne klasy błędów pozwalają precyzyjnie reagować na konkretny typ błędu i nieść kontekst (np. nazwę pola).", en: "Custom error classes let you react precisely to a specific error type and carry context (e.g. a field name)." },
+          },
+        ],
+      },
+    ],
+  },
+
+  /* ============================ QA AUTOMATION ============================ */
+  {
+    id: "qa",
+    name: { pl: "Automatyzacja QA", en: "QA Automation" },
+    desc: {
+      pl: "Wzorce w TypeScript niezbędne w automatyzacji testów: async, retry/polling, Page Object Model, fixture'y i typowane asercje.",
+      en: "TypeScript patterns essential for test automation: async, retry/polling, Page Object Model, fixtures and typed assertions.",
+    },
+    modules: [
+      {
+        id: "q-l1",
+        type: "lesson",
+        xp: 33,
+        title: { pl: "Asynchroniczność w testach", en: "Asynchrony in tests" },
+        body: {
+          pl:
+            "<p>Testy automatyczne to przede wszystkim kod asynchroniczny. Musisz świadomie wybierać między równoległością a kolejnością.</p>" +
+            codeBlock("// Równolegle — szybciej, gdy zadania są niezależne:\nconst [a, b] = await Promise.all([poborA(), poborB()]);\n\n// allSettled — nie przerywa, gdy któraś odrzuci:\nconst wyniki = await Promise.allSettled([t1(), t2()]);\n\n// Sekwencyjnie — gdy kolejność ma znaczenie:\nfor (const zadanie of zadania) {\n  await zadanie();\n}") +
+            "<ul><li><code>Promise.all</code> — czeka na wszystkie, ale <b>odrzuca natychmiast</b>, gdy pierwsza padnie.</li><li><code>Promise.allSettled</code> — czeka na wszystkie i zwraca status każdej (idealne do raportów).</li><li><code>Promise.race</code> — wynik pierwszej zakończonej (np. do timeoutów).</li></ul>" +
+            '<div class="note warn">Najczęstszy błąd początkujących: pętla <code>forEach</code> z <code>await</code> w środku <b>nie</b> czeka. Używaj klasycznego <code>for...of</code>.</div>',
+          en:
+            "<p>Test automation is mostly asynchronous code. You must deliberately choose between parallelism and ordering.</p>" +
+            codeBlock("// Parallel — faster when tasks are independent:\nconst [a, b] = await Promise.all([fetchA(), fetchB()]);\n\n// allSettled — doesn't abort when one rejects:\nconst results = await Promise.allSettled([t1(), t2()]);\n\n// Sequential — when ordering matters:\nfor (const task of tasks) {\n  await task();\n}") +
+            "<ul><li><code>Promise.all</code> — waits for all, but <b>rejects immediately</b> when the first fails.</li><li><code>Promise.allSettled</code> — waits for all and returns each one's status (great for reports).</li><li><code>Promise.race</code> — the first settled result (e.g. for timeouts).</li></ul>" +
+            '<div class="note warn">A classic beginner bug: a <code>forEach</code> loop with <code>await</code> inside does <b>not</b> wait. Use a plain <code>for...of</code>.</div>',
+        },
+      },
+      {
+        id: "q-lab1",
+        type: "lab",
+        xp: 75,
+        title: { pl: "Timeout dla obietnicy", en: "Promise timeout" },
+        prompt: {
+          pl: "Napisz <code>zTimeoutem&lt;T&gt;(p, ms)</code>, które zwraca wartość obietnicy <code>p</code>, jeśli zdąży w <code>ms</code> milisekund, a w przeciwnym razie odrzuca z błędem. Użyj <code>Promise.race</code>.",
+          en: "Write <code>withTimeout&lt;T&gt;(p, ms)</code> that returns the value of promise <code>p</code> if it settles within <code>ms</code> milliseconds, otherwise rejects with an error. Use <code>Promise.race</code>.",
+        },
+        tasks: [
+          { desc: { pl: "Szybka obietnica zwraca wartość", en: "A fast promise returns its value" }, test: 'const v = await zTimeoutem(Promise.resolve(7), 50); assert(v === 7, "Powinno zwrócić 7, gdy zdąży");' },
+          { desc: { pl: "Wolna obietnica → odrzucenie (timeout)", en: "A slow promise → rejection (timeout)" }, test: 'let z = false; try { await zTimeoutem(new Promise(function () {}), 10); } catch (e) { z = true; } assert(z, "Powinno odrzucić po przekroczeniu czasu");' },
+        ],
+        starter:
+          "function zTimeoutem<T>(p: Promise<T>, ms: number): Promise<T> {\n  // Promise.race z obietnicą, która odrzuca po ms\n  return p;\n}\n",
+        solution:
+          "function zTimeoutem<T>(p: Promise<T>, ms: number): Promise<T> {\n  return Promise.race([\n    p,\n    new Promise<T>((_, reject) =>\n      setTimeout(() => reject(new Error(\"timeout\")), ms)\n    ),\n  ]);\n}",
+        hints: [
+          { pl: "Druga obietnica w wyścigu odrzuca w <code>setTimeout</code> po <code>ms</code>.", en: "The second racer rejects inside <code>setTimeout</code> after <code>ms</code>." },
+          { pl: "<code>Promise.race</code> kończy się wynikiem pierwszej zakończonej obietnicy.", en: "<code>Promise.race</code> settles with the first promise that settles." },
+        ],
+      },
+      {
+        id: "q-l2",
+        type: "lesson",
+        xp: 33,
+        title: { pl: "Retry i polling (waitFor)", en: "Retry & polling (waitFor)" },
+        body: {
+          pl:
+            "<p>Aplikacje są asynchroniczne i bywają niestabilne. Dwie techniki ratują testy przed <b>flakiness</b> (losowymi padami):</p>" +
+            "<ul><li><b>Retry</b> — powtórz akcję, gdy się nie powiedzie.</li><li><b>Polling / waitFor</b> — odpytuj warunek co interwał, aż będzie spełniony (lub minie timeout).</li></ul>" +
+            codeBlock("async function ponow<T>(fn: () => Promise<T>, proby: number): Promise<T> {\n  let ostatni: unknown;\n  for (let i = 0; i < proby; i++) {\n    try { return await fn(); }\n    catch (e) { ostatni = e; }\n  }\n  throw ostatni;\n}") +
+            '<div class="note warn">Nigdy nie czekaj „na sztywno\" przez <code>sleep(5000)</code>. Czekaj na <b>warunek</b> (np. aż element się pojawi) — testy będą szybsze i stabilniejsze.</div>',
+          en:
+            "<p>Apps are asynchronous and sometimes unstable. Two techniques save tests from <b>flakiness</b> (random failures):</p>" +
+            "<ul><li><b>Retry</b> — repeat an action when it fails.</li><li><b>Polling / waitFor</b> — check a condition every interval until it's met (or a timeout passes).</li></ul>" +
+            codeBlock("async function retry<T>(fn: () => Promise<T>, attempts: number): Promise<T> {\n  let last: unknown;\n  for (let i = 0; i < attempts; i++) {\n    try { return await fn(); }\n    catch (e) { last = e; }\n  }\n  throw last;\n}") +
+            '<div class="note warn">Never wait “hard\" with <code>sleep(5000)</code>. Wait for a <b>condition</b> (e.g. until an element appears) — tests get faster and more stable.</div>',
+        },
+      },
+      {
+        id: "q-lab2",
+        type: "lab",
+        xp: 80,
+        title: { pl: "Funkcja retry", en: "Retry function" },
+        prompt: {
+          pl: "Napisz <code>ponow&lt;T&gt;(fn, proby)</code>: wywołuj asynchroniczne <code>fn</code>; jeśli rzuci, ponawiaj aż do <code>proby</code> razy. Gdy się uda — zwróć wynik; gdy wszystkie próby zawiodą — rzuć ostatni błąd.",
+          en: "Write <code>retry&lt;T&gt;(fn, attempts)</code>: call the async <code>fn</code>; if it throws, retry up to <code>attempts</code> times. On success — return the value; if all attempts fail — throw the last error.",
+        },
+        tasks: [
+          { desc: { pl: "Sukces po kilku porażkach", en: "Success after a few failures" }, test: 'let n = 0; const fn = async function () { n++; if (n < 3) throw new Error("jeszcze nie"); return "ok"; }; const r = await ponow(fn, 5); assert(r === "ok", "Powinno zwrócić ok"); assert(n === 3, "Powinno wywołać dokładnie 3 razy");' },
+          { desc: { pl: "Wszystkie próby zawodzą → wyjątek", en: "All attempts fail → throws" }, test: 'let z = false; const bad = async function () { throw new Error("zawsze"); }; try { await ponow(bad, 3); } catch (e) { z = true; } assert(z, "Powinno odrzucić, gdy wszystkie próby zawiodą");' },
+        ],
+        starter:
+          "async function ponow<T>(fn: () => Promise<T>, proby: number): Promise<T> {\n  // pętla prób z try/catch; na końcu rzuć ostatni błąd\n  throw new Error(\"Niezaimplementowane\");\n}\n",
+        solution:
+          "async function ponow<T>(fn: () => Promise<T>, proby: number): Promise<T> {\n  let ostatni: unknown;\n  for (let i = 0; i < proby; i++) {\n    try {\n      return await fn();\n    } catch (e) {\n      ostatni = e;\n    }\n  }\n  throw ostatni;\n}",
+        hints: [
+          { pl: "W pętli <code>for</code> spróbuj <code>return await fn();</code> w bloku <code>try</code>.", en: "In a <code>for</code> loop try <code>return await fn();</code> inside <code>try</code>." },
+          { pl: "Zapamiętuj błąd w zmiennej i rzuć go po wyczerpaniu prób.", en: "Store the error in a variable and throw it after attempts run out." },
+        ],
+      },
+      {
+        id: "q-lab3",
+        type: "lab",
+        xp: 85,
+        title: { pl: "Polling — czekajAz", en: "Polling — waitFor" },
+        prompt: {
+          pl: "Napisz <code>czekajAz(warunek, timeoutMs, intervalMs)</code>: odpytuj <code>warunek()</code> co <code>intervalMs</code>, aż zwróci <code>true</code> (wtedy zakończ). Jeśli minie <code>timeoutMs</code> — rzuć <code>Error</code>.",
+          en: "Write <code>waitFor(condition, timeoutMs, intervalMs)</code>: poll <code>condition()</code> every <code>intervalMs</code> until it returns <code>true</code> (then finish). If <code>timeoutMs</code> passes — throw an <code>Error</code>.",
+        },
+        tasks: [
+          { desc: { pl: "Kończy się, gdy warunek staje się prawdą", en: "Resolves once the condition becomes true" }, test: 'let licznik = 0; const warunek = function () { licznik++; return licznik >= 3; }; await czekajAz(warunek, 1000, 5); assert(licznik >= 3, "Powinno poczekać aż warunek spełniony");' },
+          { desc: { pl: "Rzuca po przekroczeniu timeoutu", en: "Throws after the timeout" }, test: 'let z = false; try { await czekajAz(function () { return false; }, 30, 5); } catch (e) { z = true; } assert(z, "Powinno rzucić po timeout");' },
+        ],
+        starter:
+          "function sleep(ms: number): Promise<void> {\n  return new Promise((r) => setTimeout(r, ms));\n}\n\nasync function czekajAz(\n  warunek: () => boolean,\n  timeoutMs: number,\n  intervalMs: number\n): Promise<void> {\n  // odpytuj warunek co interwał aż do skutku lub timeoutu\n}\n",
+        solution:
+          "function sleep(ms: number): Promise<void> {\n  return new Promise((r) => setTimeout(r, ms));\n}\n\nasync function czekajAz(\n  warunek: () => boolean,\n  timeoutMs: number,\n  intervalMs: number\n): Promise<void> {\n  const koniec = Date.now() + timeoutMs;\n  while (Date.now() < koniec) {\n    if (warunek()) return;\n    await sleep(intervalMs);\n  }\n  throw new Error(\"Przekroczono czas oczekiwania\");\n}",
+        hints: [
+          { pl: "Policz moment końca: <code>const koniec = Date.now() + timeoutMs;</code>", en: "Compute the deadline: <code>const end = Date.now() + timeoutMs;</code>" },
+          { pl: "W pętli <code>while</code>: jeśli warunek spełniony — <code>return</code>; w przeciwnym razie <code>await sleep(intervalMs)</code>.", en: "In a <code>while</code> loop: if the condition holds — <code>return</code>; otherwise <code>await sleep(intervalMs)</code>." },
+        ],
+      },
+      {
+        id: "q-l3",
+        type: "lesson",
+        xp: 33,
+        title: { pl: "Page Object Model", en: "Page Object Model" },
+        body: {
+          pl:
+            "<p><b>Page Object Model (POM)</b> to najważniejszy wzorzec w automatyzacji UI: każdą stronę/komponent opisujesz klasą, która enkapsuluje <b>selektory</b> i <b>akcje</b>. Testy stają się czytelne i odporne na zmiany interfejsu.</p>" +
+            codeBlock("class StronaBazowa {\n  constructor(protected selektory: Record<string, string>) {}\n\n  selektor(nazwa: string): string {\n    const s = this.selektory[nazwa];\n    if (!s) throw new Error(\"Brak selektora: \" + nazwa);\n    return s;\n  }\n}\n\nclass StronaLogowania extends StronaBazowa {\n  constructor() {\n    super({ login: \"#login\", haslo: \"#haslo\" });\n  }\n}") +
+            '<div class="note">Gdy zmieni się selektor w UI, poprawiasz go w <b>jednym</b> miejscu (page object), a nie w dziesiątkach testów. To esencja utrzymywalności.</div>',
+          en:
+            "<p>The <b>Page Object Model (POM)</b> is the most important UI automation pattern: you describe each page/component with a class that encapsulates <b>selectors</b> and <b>actions</b>. Tests become readable and resilient to UI changes.</p>" +
+            codeBlock("class BasePage {\n  constructor(protected selectors: Record<string, string>) {}\n\n  selector(name: string): string {\n    const s = this.selectors[name];\n    if (!s) throw new Error(\"No selector: \" + name);\n    return s;\n  }\n}\n\nclass LoginPage extends BasePage {\n  constructor() {\n    super({ login: \"#login\", password: \"#password\" });\n  }\n}") +
+            '<div class="note">When a selector changes in the UI, you fix it in <b>one</b> place (the page object), not in dozens of tests. That is the essence of maintainability.</div>',
+        },
+      },
+      {
+        id: "q-lab4",
+        type: "lab",
+        xp: 80,
+        title: { pl: "Page Object", en: "Page Object" },
+        prompt: {
+          pl: "Dokończ klasę bazową <code>StronaBazowa</code> (metoda <code>selektor(nazwa)</code> zwraca selektor lub rzuca błąd dla nieznanej nazwy) oraz <code>StronaLogowania</code> z selektorami <code>login</code> = <code>\"#login\"</code> i <code>haslo</code> = <code>\"#haslo\"</code>.",
+          en: "Finish the base class <code>BasePage</code> (method <code>selector(name)</code> returns the selector or throws for an unknown name) and <code>LoginPage</code> with selectors <code>login</code> = <code>\"#login\"</code> and <code>password</code> = <code>\"#password\"</code>.",
+        },
+        tasks: [
+          { desc: { pl: 'selektor("login") === "#login"', en: 'selector("login") === "#login"' }, test: 'const p = new StronaLogowania(); assert(p.selektor("login") === "#login", "Selektor login powinien być #login");' },
+          { desc: { pl: 'selektor("haslo") === "#haslo"', en: 'selector("password") === "#password"' }, test: 'const p2 = new StronaLogowania(); assert(p2.selektor("haslo") === "#haslo", "Selektor haslo powinien być #haslo");' },
+          { desc: { pl: "Nieznany selektor → wyjątek", en: "Unknown selector → throws" }, test: 'let z = false; try { new StronaLogowania().selektor("nieistnieje"); } catch (e) { z = true; } assert(z, "Nieznany selektor powinien rzucić błąd");' },
+        ],
+        starter:
+          "class StronaBazowa {\n  constructor(protected selektory: Record<string, string>) {}\n\n  selektor(nazwa: string): string {\n    // zwróć selektor lub rzuć błąd, gdy nie istnieje\n    return \"\";\n  }\n}\n\nclass StronaLogowania extends StronaBazowa {\n  constructor() {\n    // przekaż selektory do klasy bazowej\n    super({});\n  }\n}\n",
+        solution:
+          "class StronaBazowa {\n  constructor(protected selektory: Record<string, string>) {}\n\n  selektor(nazwa: string): string {\n    const s = this.selektory[nazwa];\n    if (!s) throw new Error(\"Brak selektora: \" + nazwa);\n    return s;\n  }\n}\n\nclass StronaLogowania extends StronaBazowa {\n  constructor() {\n    super({ login: \"#login\", haslo: \"#haslo\" });\n  }\n}",
+        hints: [
+          { pl: "W <code>selektor</code>: pobierz wartość z <code>this.selektory[nazwa]</code> i rzuć błąd, gdy jej brak.", en: "In <code>selector</code>: read <code>this.selectors[name]</code> and throw when missing." },
+          { pl: "W konstruktorze <code>StronaLogowania</code> przekaż obiekt selektorów do <code>super(...)</code>.", en: "In <code>LoginPage</code>'s constructor pass the selectors object to <code>super(...)</code>." },
+        ],
+      },
+      {
+        id: "q-l4",
+        type: "lesson",
+        xp: 33,
+        title: { pl: "Fixture'y i builder danych", en: "Fixtures & data builders" },
+        body: {
+          pl:
+            "<p>Dobre testy nie powtarzają tworzenia danych. <b>Fabryka/builder</b> z domyślnymi wartościami i nadpisaniami przez <code>Partial&lt;T&gt;</code> to standard.</p>" +
+            codeBlock("interface Uzytkownik {\n  id: number;\n  imie: string;\n  aktywny: boolean;\n}\n\nfunction zbudujUzytkownika(\n  nadpisania: Partial<Uzytkownik> = {}\n): Uzytkownik {\n  return { id: 1, imie: \"Test\", aktywny: true, ...nadpisania };\n}\n\nconst wylaczony = zbudujUzytkownika({ aktywny: false });") +
+            '<div class="note">Test podaje tylko to, co istotne dla <b>danego</b> przypadku (np. <code>{ aktywny: false }</code>), a reszta pól ma sensowne domyślne wartości. Mniej szumu, większa czytelność.</div>',
+          en:
+            "<p>Good tests don't repeat data creation. A <b>factory/builder</b> with defaults and overrides via <code>Partial&lt;T&gt;</code> is the standard.</p>" +
+            codeBlock("interface User {\n  id: number;\n  name: string;\n  active: boolean;\n}\n\nfunction buildUser(\n  overrides: Partial<User> = {}\n): User {\n  return { id: 1, name: \"Test\", active: true, ...overrides };\n}\n\nconst disabled = buildUser({ active: false });") +
+            '<div class="note">A test only specifies what matters for <b>that</b> case (e.g. <code>{ active: false }</code>); the rest get sensible defaults. Less noise, more readability.</div>',
+        },
+      },
+      {
+        id: "q-lab5",
+        type: "lab",
+        xp: 75,
+        title: { pl: "Fabryka danych testowych", en: "Test data factory" },
+        prompt: {
+          pl: "Napisz <code>zbudujUzytkownika(nadpisania?)</code>, który zwraca obiekt <code>Uzytkownik</code> z domyślnymi wartościami (<code>id: 1</code>, <code>imie: \"Test\"</code>, <code>aktywny: true</code>) scalonymi z przekazanymi nadpisaniami (<code>Partial&lt;Uzytkownik&gt;</code>).",
+          en: "Write <code>buildUser(overrides?)</code> that returns a <code>User</code> object with defaults (<code>id: 1</code>, <code>name: \"Test\"</code>, <code>active: true</code>) merged with the given overrides (<code>Partial&lt;User&gt;</code>).",
+        },
+        tasks: [
+          { desc: { pl: "Bez argumentów → wartości domyślne", en: "No args → defaults" }, test: 'const u = zbudujUzytkownika(); assert(u.id === 1 && u.imie === "Test" && u.aktywny === true, "Powinny być wartości domyślne");' },
+          { desc: { pl: "Nadpisanie pojedynczego pola, reszta domyślna", en: "Override one field, rest defaults" }, test: 'const u2 = zbudujUzytkownika({ imie: "Ada" }); assert(u2.imie === "Ada", "imie powinno być nadpisane"); assert(u2.id === 1 && u2.aktywny === true, "Reszta pól domyślna");' },
+          { desc: { pl: "Nadpisanie aktywny: false działa", en: "Override active: false works" }, test: 'const u3 = zbudujUzytkownika({ aktywny: false }); assert(u3.aktywny === false, "aktywny powinno być false");' },
+        ],
+        starter:
+          "interface Uzytkownik {\n  id: number;\n  imie: string;\n  aktywny: boolean;\n}\n\nfunction zbudujUzytkownika(nadpisania: Partial<Uzytkownik> = {}): Uzytkownik {\n  // zwróć obiekt z domyślnymi wartościami + nadpisania\n  return { id: 0, imie: \"\", aktywny: false };\n}\n",
+        solution:
+          "interface Uzytkownik {\n  id: number;\n  imie: string;\n  aktywny: boolean;\n}\n\nfunction zbudujUzytkownika(nadpisania: Partial<Uzytkownik> = {}): Uzytkownik {\n  return { id: 1, imie: \"Test\", aktywny: true, ...nadpisania };\n}",
+        hints: [
+          { pl: "Użyj rozszczepienia (spread): <code>{ ...domyslne, ...nadpisania }</code>.", en: "Use spread: <code>{ ...defaults, ...overrides }</code>." },
+          { pl: "Nadpisania muszą być <b>po</b> domyślnych wartościach, by je przesłonić.", en: "Overrides must come <b>after</b> the defaults to take precedence." },
+        ],
+      },
+      {
+        id: "q-l5",
+        type: "lesson",
+        xp: 33,
+        title: { pl: "Typowane asercje", en: "Typed assertions" },
+        body: {
+          pl:
+            "<p>Asercje to serce testu. W TypeScript funkcja asercji może <b>zawężać typ</b> dzięki sygnaturze <code>asserts</code>.</p>" +
+            codeBlock("function assert(warunek: boolean, komunikat: string): asserts warunek {\n  if (!warunek) throw new Error(komunikat);\n}\n\nfunction sprawdzRowne(a: unknown, b: unknown): void {\n  if (JSON.stringify(a) !== JSON.stringify(b)) {\n    throw new Error(\"Oczekiwano \" + JSON.stringify(b) + \", otrzymano \" + JSON.stringify(a));\n  }\n}") +
+            '<div class="note">Po wywołaniu <code>assert(x !== null, ...)</code> kompilator wie, że dalej <code>x</code> nie jest <code>null</code>. To <code>asserts</code> w akcji — dokładnie tak działają matchery w bibliotekach testowych.</div>' +
+            '<div class="note warn">Porównanie przez <code>JSON.stringify</code> jest proste, ale ma pułapki (kolejność kluczy, brak obsługi <code>undefined</code>). W prawdziwych testach używaj <code>expect(...).toEqual(...)</code>.</div>',
+          en:
+            "<p>Assertions are the heart of a test. In TypeScript an assertion function can <b>narrow the type</b> via the <code>asserts</code> signature.</p>" +
+            codeBlock("function assert(condition: boolean, message: string): asserts condition {\n  if (!condition) throw new Error(message);\n}\n\nfunction expectEqual(a: unknown, b: unknown): void {\n  if (JSON.stringify(a) !== JSON.stringify(b)) {\n    throw new Error(\"Expected \" + JSON.stringify(b) + \", got \" + JSON.stringify(a));\n  }\n}") +
+            '<div class="note">After calling <code>assert(x !== null, ...)</code> the compiler knows <code>x</code> is no longer <code>null</code>. That is <code>asserts</code> in action — exactly how matchers in test libraries work.</div>' +
+            '<div class="note warn">Comparing via <code>JSON.stringify</code> is simple but has traps (key order, no <code>undefined</code> handling). In real tests use <code>expect(...).toEqual(...)</code>.</div>',
+        },
+      },
+      {
+        id: "q-lab6",
+        type: "lab",
+        xp: 80,
+        title: { pl: "Własny matcher równości", en: "Custom equality matcher" },
+        prompt: {
+          pl: "Napisz <code>sprawdzRowne(a, b)</code>, które porównuje dwie wartości głęboko (po zserializowaniu). Gdy są równe — nic nie robi; gdy różne — rzuca <code>Error</code> z czytelnym komunikatem.",
+          en: "Write <code>expectEqual(a, b)</code> that deep-compares two values (after serialization). When equal — do nothing; when different — throw an <code>Error</code> with a clear message.",
+        },
+        tasks: [
+          { desc: { pl: "Równe obiekty nie rzucają błędu", en: "Equal objects don't throw" }, test: 'sprawdzRowne({ a: 1, b: [1, 2] }, { a: 1, b: [1, 2] }); assert(true, "Równe wartości przechodzą");' },
+          { desc: { pl: "Różne obiekty rzucają błąd", en: "Different objects throw" }, test: 'let z = false; try { sprawdzRowne({ a: 1 }, { a: 2 }); } catch (e) { z = true; } assert(z, "Różne wartości powinny rzucić błąd");' },
+          { desc: { pl: "Różne tablice rzucają błąd", en: "Different arrays throw" }, test: 'let z2 = false; try { sprawdzRowne([1, 2, 3], [1, 2]); } catch (e) { z2 = true; } assert(z2, "Różne tablice powinny rzucić błąd");' },
+        ],
+        starter:
+          "function sprawdzRowne(a: unknown, b: unknown): void {\n  // porównaj głęboko i rzuć Error, gdy różne\n}\n",
+        solution:
+          "function sprawdzRowne(a: unknown, b: unknown): void {\n  if (JSON.stringify(a) !== JSON.stringify(b)) {\n    throw new Error(\n      \"Oczekiwano \" + JSON.stringify(b) + \", otrzymano \" + JSON.stringify(a)\n    );\n  }\n}",
+        hints: [
+          { pl: "Najprostsze głębokie porównanie: <code>JSON.stringify(a) !== JSON.stringify(b)</code>.", en: "Simplest deep compare: <code>JSON.stringify(a) !== JSON.stringify(b)</code>." },
+          { pl: "Gdy wartości się różnią — <code>throw new Error(...)</code>.", en: "When values differ — <code>throw new Error(...)</code>." },
+        ],
+      },
+      {
+        id: "q-q1",
+        type: "quiz",
+        xp: 55,
+        title: { pl: "Egzamin: Automatyzacja QA", en: "Exam: QA Automation" },
+        passRatio: 0.7,
+        questions: [
+          {
+            type: "mc",
+            q: { pl: "Która metoda czeka aż <b>wszystkie</b> obietnice się zakończą, nawet jeśli któraś odrzuci?", en: "Which method waits for <b>all</b> promises to settle, even if one rejects?" },
+            options: [
+              { pl: "<code>Promise.all</code>", en: "<code>Promise.all</code>" },
+              { pl: "<code>Promise.race</code>", en: "<code>Promise.race</code>" },
+              { pl: "<code>Promise.allSettled</code>", en: "<code>Promise.allSettled</code>" },
+              { pl: "<code>Promise.any</code>", en: "<code>Promise.any</code>" },
+            ],
+            answer: 2,
+            explain: { pl: "<code>allSettled</code> nigdy nie przerywa — zwraca status każdej obietnicy.", en: "<code>allSettled</code> never short-circuits — it returns each promise's status." },
+          },
+          {
+            type: "mc",
+            q: { pl: "Dlaczego w testach E2E/integracyjnych stosujemy retry i polling?", en: "Why do we use retry and polling in E2E/integration tests?" },
+            options: [
+              { pl: "Aby kod był krótszy", en: "To make code shorter" },
+              { pl: "Bo UI/API są asynchroniczne i bywają niestabilne — ogranicza to flaky testy", en: "Because UI/API are asynchronous and sometimes unstable — it reduces flaky tests" },
+              { pl: "Bo wymaga tego TypeScript", en: "Because TypeScript requires it" },
+              { pl: "Aby zwiększyć zużycie pamięci", en: "To increase memory usage" },
+            ],
+            answer: 1,
+            explain: { pl: "Czekanie na warunek zamiast „na sztywno\" stabilizuje testy zależne od czasu odpowiedzi.", en: "Waiting for a condition rather than a fixed sleep stabilizes tests that depend on response time." },
+          },
+          {
+            type: "mc",
+            q: { pl: "Do czego służy Page Object Model?", en: "What is the Page Object Model for?" },
+            options: [
+              { pl: "Do stylowania stron", en: "Styling pages" },
+              { pl: "Do enkapsulacji selektorów i akcji strony, by testy były czytelne i odporne na zmiany UI", en: "Encapsulating a page's selectors and actions so tests are readable and resilient to UI changes" },
+              { pl: "Do kompilacji TypeScript", en: "Compiling TypeScript" },
+              { pl: "Do zarządzania bazą danych", en: "Managing a database" },
+            ],
+            answer: 1,
+            explain: { pl: "POM trzyma selektory w jednym miejscu — zmiana UI = poprawka w jednej klasie.", en: "POM keeps selectors in one place — a UI change means a fix in a single class." },
+          },
+          {
+            type: "fill",
+            q: { pl: "Uzupełnij typ pozwalający nadpisać tylko część pól fixture'a: <code>___&lt;Uzytkownik&gt;</code>", en: "Fill in the type that lets you override only some fixture fields: <code>___&lt;User&gt;</code>" },
+            answer: ["Partial"],
+            explain: { pl: "<code>Partial&lt;T&gt;</code> czyni wszystkie pola opcjonalnymi — idealne do nadpisań.", en: "<code>Partial&lt;T&gt;</code> makes all fields optional — perfect for overrides." },
+          },
+          {
+            type: "mc",
+            q: { pl: "Czym jest „flaky test\"?", en: "What is a “flaky test\"?" },
+            options: [
+              { pl: "Test, który zawsze przechodzi", en: "A test that always passes" },
+              { pl: "Test, który raz przechodzi, a raz pada bez zmiany kodu (niedeterministyczny)", en: "A test that sometimes passes and sometimes fails without code changes (non-deterministic)" },
+              { pl: "Test napisany w innym języku", en: "A test written in another language" },
+              { pl: "Test bez asercji", en: "A test with no assertions" },
+            ],
+            answer: 1,
+            explain: { pl: "Flaky test daje różne wyniki przy tym samym kodzie — zwykle przez warunki wyścigu lub złe czekanie.", en: "A flaky test yields different results for the same code — usually due to race conditions or bad waiting." },
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 /* ---------- Osiągnięcia / odznaki ---------- */
@@ -868,6 +1496,8 @@ const ACHIEVEMENTS = [
   { id: "beginner-done", icon: "🌱", title: { pl: "Adept", en: "Adept" }, desc: { pl: "Ukończ poziom Początkujący.", en: "Finish the Beginner level." } },
   { id: "intermediate-done", icon: "⚙️", title: { pl: "Rzemieślnik", en: "Craftsman" }, desc: { pl: "Ukończ poziom Średnio zaawansowany.", en: "Finish the Intermediate level." } },
   { id: "advanced-done", icon: "🧠", title: { pl: "Mistrz typów", en: "Type master" }, desc: { pl: "Ukończ poziom Zaawansowany.", en: "Finish the Advanced level." } },
+  { id: "pro-done", icon: "🛡️", title: { pl: "Profesjonalista", en: "Professional" }, desc: { pl: "Ukończ poziom TypeScript Pro.", en: "Finish the TypeScript Pro level." } },
+  { id: "qa-done", icon: "🤖", title: { pl: "Automatyk QA", en: "QA Automator" }, desc: { pl: "Ukończ poziom Automatyzacja QA.", en: "Finish the QA Automation level." } },
   { id: "streak-5", icon: "🔥", title: { pl: "Na fali", en: "On fire" }, desc: { pl: "Zdobądź serię 5 poprawnych zaliczeń.", en: "Reach a streak of 5 correct completions." } },
   { id: "lab-ace", icon: "🧪", title: { pl: "Laborant", en: "Lab ace" }, desc: { pl: "Zalicz 5 laboratoriów.", en: "Pass 5 labs." } },
   { id: "perfect-quiz", icon: "💯", title: { pl: "Perfekcjonista", en: "Perfectionist" }, desc: { pl: "Zalicz quiz bez żadnego błędu.", en: "Pass a quiz with no mistakes." } },

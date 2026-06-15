@@ -139,6 +139,8 @@ button { font-family: inherit; cursor: pointer; }
 .level-dot.beginner { background: var(--accent); }
 .level-dot.intermediate { background: var(--accent-2); }
 .level-dot.advanced { background: var(--purple); }
+.level-dot.pro { background: #ff8a5c; }
+.level-dot.qa { background: #4dd6ff; }
 
 .nav-modules { display: flex; flex-direction: column; gap: 2px; padding: 2px 0 8px 6px; }
 .nav-module {
@@ -196,6 +198,8 @@ button { font-family: inherit; cursor: pointer; }
 .level-card.beginner .lc-badge { background: rgba(56,224,176,.15); color: var(--accent); }
 .level-card.intermediate .lc-badge { background: rgba(255,209,102,.15); color: var(--accent-2); }
 .level-card.advanced .lc-badge { background: rgba(176,131,255,.15); color: var(--purple); }
+.level-card.pro .lc-badge { background: rgba(255,138,92,.15); color: #ff8a5c; }
+.level-card.qa .lc-badge { background: rgba(77,214,255,.15); color: #4dd6ff; }
 .level-card h3 { margin: 0 0 6px; font-size: 19px; }
 .level-card p { color: var(--text-dim); font-size: 13px; margin: 0 0 16px; min-height: 38px; }
 .level-card .lc-foot { display: flex; align-items: center; justify-content: space-between; }
