@@ -244,13 +244,18 @@ const COURSE = [
         title: { pl: "Czym jest TypeScript?", en: "What is TypeScript?" },
         body: {
           pl:
-            "<p><b>TypeScript</b> to nadzbiór JavaScript, który dodaje <i>statyczne typy</i>. Każdy poprawny kod JavaScript jest też poprawnym TypeScriptem — ale TypeScript pozwala opisać, <b>jakiego rodzaju</b> dane przechowują zmienne, dzięki czemu kompilator wyłapie wiele błędów zanim uruchomisz program.</p>" +
+            "<p><b>TypeScript</b> to nadzbiór JavaScript, który dodaje <i>statyczne typy</i>. Każdy poprawny kod JavaScript jest też poprawnym TypeScriptem — ale TypeScript pozwala opisać, <b>jakiego rodzaju</b> dane przechowują zmienne, dzięki czemu kompilator wyłapie wiele błędów, zanim uruchomisz program.</p>" +
+            "<h3>Analogia</h3>" +
+            "<p>Wyobraź sobie pudełka, w których trzymasz rzeczy. W czystym JavaScript pudełka nie mają etykiet — możesz wrzucić cokolwiek i dopiero przy otwieraniu okazuje się, że jest tam coś nie tego. TypeScript to <b>etykiety na pudełkach</b>: z góry mówisz „tu trzymam liczbę”, a edytor pilnuje, żebyś przez pomyłkę nie włożył tam tekstu.</p>" +
+            "<h3>Czym jest „kompilacja”?</h3>" +
+            "<p>Przeglądarka nie rozumie TypeScriptu — rozumie tylko JavaScript. <b>Kompilacja</b> to tłumaczenie Twojego kodu TS na zwykły JS. Przy okazji tego tłumaczenia kompilator sprawdza typy i krzyczy, jeśli coś się nie zgadza. (W tej grze dzieje się to automatycznie, gdy klikasz „Uruchom”.)</p>" +
             "<h3>Dlaczego warto?</h3>" +
-            "<ul><li>Błędy wykrywane podczas pisania, a nie u użytkownika.</li><li>Podpowiedzi w edytorze (autouzupełnianie).</li><li>Kod łatwiejszy w utrzymaniu i czytaniu.</li></ul>" +
+            "<ul><li>Błędy wykrywane podczas pisania, a nie dopiero u użytkownika.</li><li>Podpowiedzi w edytorze (autouzupełnianie) — mniej zgadywania.</li><li>Kod łatwiejszy w utrzymaniu i czytaniu (typy są jak dokumentacja).</li></ul>" +
             "<h3>Adnotacja typu</h3>" +
-            "<p>Typ dodajemy po dwukropku <code>:</code> za nazwą zmiennej.</p>" +
+            "<p>Typ dodajemy po dwukropku <code>:</code> za nazwą zmiennej. Czytaj to jak: „<code>wiek</code> jest typu <code>number</code>”.</p>" +
             codeBlock('let wiek: number = 30;\nlet imie: string = "Ada";\nlet aktywny: boolean = true;') +
-            '<div class="note">TypeScript potrafi też <b>wywnioskować</b> typ. Jeśli napiszesz <code>let x = 5</code>, kompilator sam wie, że <code>x</code> to <code>number</code>.</div>',
+            '<div class="note">TypeScript potrafi też <b>wywnioskować</b> typ. Jeśli napiszesz <code>let x = 5</code>, kompilator sam wie, że <code>x</code> to <code>number</code> — nie musisz pisać typu jawnie.</div>' +
+            '<div class="note warn"><b>Częsty błąd:</b> próba przypisania innego typu, np. <code>let wiek: number = "trzydzieści";</code> — kompilator to zablokuje. I o to chodzi!</div>',
           en:
             "<p><b>TypeScript</b> is a superset of JavaScript that adds <i>static types</i>. Every valid JavaScript program is also valid TypeScript — but TypeScript lets you describe <b>what kind</b> of data your variables hold, so the compiler can catch many bugs before you ever run the code.</p>" +
             "<h3>Why bother?</h3>" +
@@ -259,6 +264,64 @@ const COURSE = [
             "<p>We add a type after a colon <code>:</code> following the variable name.</p>" +
             codeBlock('let age: number = 30;\nlet name: string = "Ada";\nlet active: boolean = true;') +
             '<div class="note">TypeScript can also <b>infer</b> types. If you write <code>let x = 5</code>, it already knows <code>x</code> is a <code>number</code>.</div>',
+        },
+      },
+      /* --- NEW Lesson: zmienne --- */
+      {
+        id: "b-l-var",
+        type: "lesson",
+        xp: 18,
+        title: { pl: "Zmienne: let i const", en: "Variables: let and const" },
+        body: {
+          pl:
+            "<p><b>Zmienna</b> to nazwane miejsce w pamięci, w którym trzymasz wartość. Tworzysz ją słowem <code>let</code> albo <code>const</code>.</p>" +
+            "<ul><li><code>let</code> — wartość można później <b>zmienić</b> (np. licznik, który rośnie).</li><li><code>const</code> — wartość jest <b>stała</b>, nie da się jej nadpisać.</li></ul>" +
+            codeBlock('let punkty = 0;\npunkty = 10;      // OK — let pozwala zmieniać\n\nconst nazwa = "Ada";\n// nazwa = "Ola";  // BŁĄD — const jest stała') +
+            '<div class="note">Dobra praktyka: używaj <code>const</code> domyślnie, a <code>let</code> tylko wtedy, gdy naprawdę musisz zmieniać wartość. Mniej pomyłek.</div>' +
+            "<h3>Nazewnictwo</h3>" +
+            "<p>Nazwy piszemy w stylu <code>camelCase</code> (pierwsze słowo małą literą, kolejne wielką): <code>liczbaUzytkownikow</code>. Nazwa powinna mówić, <i>co</i> przechowuje.</p>" +
+            '<div class="note warn"><b>Starsze <code>var</code>:</b> spotkasz je w starym kodzie, ale dziś go nie używamy — <code>let</code> i <code>const</code> są bezpieczniejsze.</div>',
+          en:
+            "<p>A <b>variable</b> is a named place in memory that holds a value. You create one with <code>let</code> or <code>const</code>.</p>" +
+            "<ul><li><code>let</code> — the value can be <b>changed</b> later (e.g. a counter).</li><li><code>const</code> — the value is <b>constant</b>, it cannot be reassigned.</li></ul>" +
+            codeBlock('let points = 0;\npoints = 10;      // OK — let allows reassigning\n\nconst name = "Ada";\n// name = "Ola";  // ERROR — const is constant') +
+            '<div class="note">Good practice: use <code>const</code> by default, and <code>let</code> only when you truly need to change the value. Fewer mistakes.</div>' +
+            "<h3>Naming</h3>" +
+            "<p>We use <code>camelCase</code> (first word lowercase, next ones capitalized): <code>numberOfUsers</code>. A name should say <i>what</i> it stores.</p>" +
+            '<div class="note warn"><b>Old <code>var</code>:</b> you will see it in legacy code, but we don\'t use it today — <code>let</code> and <code>const</code> are safer.</div>',
+        },
+      },
+      /* --- NEW Lesson: typy podstawowe --- */
+      {
+        id: "b-l-prim",
+        type: "lesson",
+        xp: 20,
+        title: { pl: "Typy podstawowe bliżej", en: "Primitive types up close" },
+        body: {
+          pl:
+            "<p>Trzy typy, których użyjesz najczęściej:</p>" +
+            "<h3>1. <code>string</code> — tekst</h3>" +
+            "<p>Tekst zapisujemy w cudzysłowach. Teksty można łączyć (<code>+</code>) lub wstawiać do nich wartości za pomocą <b>szablonów</b> (backtick <code>`</code> i <code>${...}</code>).</p>" +
+            codeBlock('const imie = "Ada";\nconst powitanie = "Cześć " + imie;        // "Cześć Ada"\nconst inne = `Cześć ${imie}, witaj!`;       // szablon') +
+            "<h3>2. <code>number</code> — liczby</h3>" +
+            "<p>Jeden typ na liczby całkowite i zmiennoprzecinkowe. Działają zwykłe operatory: <code>+ - * /</code> oraz <code>%</code> (reszta z dzielenia).</p>" +
+            codeBlock("const a = 7;\nconst b = 2;\nconst suma = a + b;     // 9\nconst reszta = a % b;   // 1") +
+            "<h3>3. <code>boolean</code> — prawda/fałsz</h3>" +
+            "<p>Tylko dwie wartości: <code>true</code> lub <code>false</code>. Powstają też z porównań.</p>" +
+            codeBlock("const pelnoletni = wiek >= 18;   // true albo false\nconst rowne = a === b;           // === to porównanie") +
+            '<div class="note"><code>null</code> i <code>undefined</code> oznaczają „brak wartości”. <code>undefined</code> = wartości nigdy nie ustawiono; <code>null</code> = celowo „pusto”.</div>',
+          en:
+            "<p>The three types you'll use the most:</p>" +
+            "<h3>1. <code>string</code> — text</h3>" +
+            "<p>Text goes in quotes. You can join strings with <code>+</code> or insert values using <b>template literals</b> (backtick <code>`</code> and <code>${...}</code>).</p>" +
+            codeBlock('const name = "Ada";\nconst greeting = "Hi " + name;        // "Hi Ada"\nconst other = `Hi ${name}, welcome!`; // template') +
+            "<h3>2. <code>number</code> — numbers</h3>" +
+            "<p>One type for integers and decimals. Usual operators work: <code>+ - * /</code> and <code>%</code> (remainder).</p>" +
+            codeBlock("const a = 7;\nconst b = 2;\nconst sum = a + b;        // 9\nconst rem = a % b;        // 1") +
+            "<h3>3. <code>boolean</code> — true/false</h3>" +
+            "<p>Only two values: <code>true</code> or <code>false</code>. Comparisons produce them too.</p>" +
+            codeBlock("const adult = age >= 18;    // true or false\nconst equal = a === b;      // === is comparison") +
+            '<div class="note"><code>null</code> and <code>undefined</code> mean “no value”. <code>undefined</code> = never set; <code>null</code> = intentionally “empty”.</div>',
         },
       },
       /* --- Lab 1 --- */
@@ -294,6 +357,120 @@ const COURSE = [
           { pl: "Wartości logiczne to true albo false.", en: "Boolean values are true or false." },
         ],
       },
+      /* --- NEW Lab: tekst --- */
+      {
+        id: "b-lab-str",
+        type: "lab",
+        xp: 35,
+        title: { pl: "Łączenie tekstu", en: "Joining text" },
+        prompt: {
+          pl: "Napisz funkcję <code>przywitaj(imie)</code>, która dla podanego imienia zwróci powitanie w formacie <code>\"Witaj, &lt;imie&gt;!\"</code>. Np. dla <code>\"Ada\"</code> → <code>\"Witaj, Ada!\"</code>.",
+          en: "Write a function <code>greet(name)</code> that for a given name returns a greeting like <code>\"Hello, &lt;name&gt;!\"</code>. E.g. for <code>\"Ada\"</code> → <code>\"Hello, Ada!\"</code>.",
+        },
+        tasks: [
+          { desc: { pl: 'przywitaj("Ada") === "Witaj, Ada!"', en: 'greet("Ada") === "Witaj, Ada!"' }, test: 'assert(przywitaj("Ada") === "Witaj, Ada!", "Dla Ada powinno być \\"Witaj, Ada!\\"");' },
+          { desc: { pl: 'przywitaj("Tom") === "Witaj, Tom!"', en: 'greet("Tom") === "Witaj, Tom!"' }, test: 'assert(przywitaj("Tom") === "Witaj, Tom!", "Dla Tom powinno być \\"Witaj, Tom!\\"");' },
+        ],
+        starter:
+          "function przywitaj(imie: string): string {\n  // połącz tekst tak, aby powstało \"Witaj, <imie>!\"\n  return \"\";\n}\n",
+        solution:
+          "function przywitaj(imie: string): string {\n  return \"Witaj, \" + imie + \"!\";\n}",
+        hints: [
+          { pl: "Sklej trzy kawałki: <code>\"Witaj, \"</code>, <code>imie</code> oraz <code>\"!\"</code>.", en: "Join three pieces: <code>\"Witaj, \"</code>, <code>name</code> and <code>\"!\"</code>." },
+          { pl: "Możesz też użyć szablonu: <code>`Witaj, ${imie}!`</code>.", en: "You can also use a template: <code>`Witaj, ${name}!`</code>." },
+        ],
+      },
+      /* --- NEW Lesson: tablice --- */
+      {
+        id: "b-l-arr",
+        type: "lesson",
+        xp: 22,
+        title: { pl: "Tablice", en: "Arrays" },
+        body: {
+          pl:
+            "<p><b>Tablica</b> to lista wartości w jednej zmiennej. Typ zapisujemy jako <code>typ[]</code>, np. <code>number[]</code> to lista liczb.</p>" +
+            codeBlock('const liczby: number[] = [10, 20, 30];\nconst imiona: string[] = ["Ada", "Tom"];') +
+            "<h3>Indeksy zaczynają się od 0</h3>" +
+            codeBlock('liczby[0];        // 10 (pierwszy element)\nliczby[2];        // 30\nliczby.length;    // 3 (ile elementów)') +
+            "<h3>Najczęstsze operacje</h3>" +
+            codeBlock('liczby.push(40);  // dodaj na koniec → [10,20,30,40]\n\nfor (const n of liczby) {\n  console.log(n);   // przejdź po wszystkich\n}') +
+            '<div class="note">Metoda <code>reduce</code> „zwija” tablicę do jednej wartości — np. sumy: <code>[1,2,3].reduce((a, b) =&gt; a + b, 0)</code> da <code>6</code>.</div>' +
+            '<div class="note warn"><b>Częsty błąd:</b> sięganie po indeks, którego nie ma (np. <code>liczby[99]</code>) — dostaniesz <code>undefined</code>.</div>',
+          en:
+            "<p>An <b>array</b> is a list of values in one variable. The type is written as <code>type[]</code>, e.g. <code>number[]</code> is a list of numbers.</p>" +
+            codeBlock('const numbers: number[] = [10, 20, 30];\nconst names: string[] = ["Ada", "Tom"];') +
+            "<h3>Indexes start at 0</h3>" +
+            codeBlock('numbers[0];       // 10 (first element)\nnumbers[2];       // 30\nnumbers.length;   // 3 (how many)') +
+            "<h3>Most common operations</h3>" +
+            codeBlock('numbers.push(40); // add to the end → [10,20,30,40]\n\nfor (const n of numbers) {\n  console.log(n);   // go through all\n}') +
+            '<div class="note">The <code>reduce</code> method “folds” an array into a single value — e.g. a sum: <code>[1,2,3].reduce((a, b) =&gt; a + b, 0)</code> gives <code>6</code>.</div>' +
+            '<div class="note warn"><b>Common mistake:</b> reading an index that doesn\'t exist (e.g. <code>numbers[99]</code>) — you get <code>undefined</code>.</div>',
+        },
+      },
+      /* --- NEW Lab: tablice --- */
+      {
+        id: "b-lab-arr",
+        type: "lab",
+        xp: 40,
+        title: { pl: "Praca z tablicą", en: "Working with an array" },
+        prompt: {
+          pl: "Utwórz tablicę <code>oceny</code> typu <code>number[]</code> z wartościami <code>4, 5, 3</code>, a następnie napisz funkcję <code>srednia(arr)</code>, która zwraca średnią arytmetyczną liczb z tablicy.",
+          en: "Create an array <code>grades</code> of type <code>number[]</code> with values <code>4, 5, 3</code>, then write a function <code>average(arr)</code> that returns the arithmetic mean of the numbers.",
+        },
+        tasks: [
+          { desc: { pl: "oceny ma 3 elementy: [4,5,3]", en: "grades has 3 items: [4,5,3]" }, test: 'assert(Array.isArray(oceny) && oceny.length === 3, "oceny powinno mieć 3 elementy"); assert(oceny[0] === 4 && oceny[1] === 5 && oceny[2] === 3, "oceny powinny być [4,5,3]");' },
+          { desc: { pl: "srednia([4,5,3]) === 4", en: "average([4,5,3]) === 4" }, test: 'assert(srednia([4,5,3]) === 4, "Średnia z [4,5,3] to 4");' },
+          { desc: { pl: "srednia([2,4]) === 3", en: "average([2,4]) === 3" }, test: 'assert(srednia([2,4]) === 3, "Średnia z [2,4] to 3");' },
+        ],
+        starter:
+          "const oceny: number[] = [];\n\nfunction srednia(arr: number[]): number {\n  // zsumuj elementy i podziel przez ich liczbę\n  return 0;\n}\n",
+        solution:
+          "const oceny: number[] = [4, 5, 3];\n\nfunction srednia(arr: number[]): number {\n  const suma = arr.reduce((a, b) => a + b, 0);\n  return suma / arr.length;\n}",
+        hints: [
+          { pl: "Sumę policzysz pętlą lub przez <code>arr.reduce((a, b) =&gt; a + b, 0)</code>.", en: "Compute the sum with a loop or <code>arr.reduce((a, b) =&gt; a + b, 0)</code>." },
+          { pl: "Średnia = suma podzielona przez <code>arr.length</code>.", en: "Average = sum divided by <code>arr.length</code>." },
+        ],
+      },
+      /* --- NEW Quiz: podstawy --- */
+      {
+        id: "b-q-basics",
+        type: "quiz",
+        xp: 25,
+        title: { pl: "Quiz: zmienne, typy, tablice", en: "Quiz: variables, types, arrays" },
+        passRatio: 0.6,
+        questions: [
+          {
+            type: "mc",
+            q: { pl: "Której deklaracji użyjesz dla wartości, która NIE będzie zmieniana?", en: "Which declaration do you use for a value that will NOT change?" },
+            options: [
+              { pl: "<code>let</code>", en: "<code>let</code>" },
+              { pl: "<code>const</code>", en: "<code>const</code>" },
+              { pl: "<code>var</code>", en: "<code>var</code>" },
+              { pl: "<code>type</code>", en: "<code>type</code>" },
+            ],
+            answer: 1,
+            explain: { pl: "<code>const</code> tworzy stałą — wartości nie da się nadpisać.", en: "<code>const</code> creates a constant — the value cannot be reassigned." },
+          },
+          {
+            type: "mc",
+            q: { pl: "Jaki indeks ma PIERWSZY element tablicy?", en: "What index does the FIRST array element have?" },
+            options: [
+              { pl: "<code>1</code>", en: "<code>1</code>" },
+              { pl: "<code>0</code>", en: "<code>0</code>" },
+              { pl: "<code>-1</code>", en: "<code>-1</code>" },
+              { pl: "Zależy od długości", en: "Depends on the length" },
+            ],
+            answer: 1,
+            explain: { pl: "Indeksy liczymy od 0, więc pierwszy element to <code>tab[0]</code>.", en: "Indexes start at 0, so the first element is <code>arr[0]</code>." },
+          },
+          {
+            type: "fill",
+            q: { pl: "Uzupełnij typ tablicy liczb: <code>let lista: ___ = [1, 2, 3];</code>", en: "Fill in the array type for numbers: <code>let list: ___ = [1, 2, 3];</code>" },
+            answer: ["number[]", "Array<number>"],
+            explain: { pl: "Tablicę liczb zapisujemy jako <code>number[]</code> (lub <code>Array&lt;number&gt;</code>).", en: "An array of numbers is <code>number[]</code> (or <code>Array&lt;number&gt;</code>)." },
+          },
+        ],
+      },
       /* --- Lesson 2 --- */
       {
         id: "b-l2",
@@ -302,8 +479,10 @@ const COURSE = [
         title: { pl: "Funkcje i ich typy", en: "Functions and their types" },
         body: {
           pl:
-            "<p>W funkcjach typujemy <b>parametry</b> oraz <b>wartość zwracaną</b>.</p>" +
+            "<p><b>Funkcja</b> to przepis: bierze dane wejściowe (<b>parametry</b>), wykonuje jakąś pracę i zwraca wynik. Dzięki funkcjom nie powtarzasz tego samego kodu w kółko.</p>" +
+            "<p>W TypeScript typujemy <b>parametry</b> (co wchodzi) oraz <b>wartość zwracaną</b> (co wychodzi). Czytaj poniższe tak: „funkcja <code>dodaj</code> bierze dwie liczby i zwraca liczbę”.</p>" +
             codeBlock("function dodaj(a: number, b: number): number {\n  return a + b;\n}\n\nconst suma = dodaj(2, 3); // 5") +
+            '<div class="note"><b>Parametr</b> vs <b>argument</b>: <code>a</code> i <code>b</code> w definicji to parametry; <code>2</code> i <code>3</code> przekazane przy wywołaniu to argumenty.</div>' +
             "<h3>Funkcje strzałkowe</h3>" +
             codeBlock("const podwoj = (x: number): number => x * 2;") +
             "<h3>Parametry opcjonalne i domyślne</h3>" +
@@ -346,6 +525,80 @@ const COURSE = [
         hints: [
           { pl: "Pole prostokąta to szerokość pomnożona przez wysokość.", en: "Rectangle area is width multiplied by height." },
           { pl: "Użyj słowa kluczowego return.", en: "Use the return keyword." },
+        ],
+      },
+      /* --- NEW Lab: funkcja max --- */
+      {
+        id: "b-lab-fn2",
+        type: "lab",
+        xp: 35,
+        title: { pl: "Większa z liczb", en: "The larger number" },
+        prompt: {
+          pl: "Napisz funkcję <code>wiekszy(a, b)</code>, która zwraca większą z dwóch liczb. Jeśli są równe — zwróć którąkolwiek (są takie same).",
+          en: "Write a function <code>larger(a, b)</code> that returns the larger of two numbers. If equal — return either one.",
+        },
+        tasks: [
+          { desc: { pl: "wiekszy(3, 7) === 7", en: "larger(3, 7) === 7" }, test: 'assert(wiekszy(3, 7) === 7, "wiekszy(3,7) powinno dać 7");' },
+          { desc: { pl: "wiekszy(9, 2) === 9", en: "larger(9, 2) === 9" }, test: 'assert(wiekszy(9, 2) === 9, "wiekszy(9,2) powinno dać 9");' },
+          { desc: { pl: "wiekszy(5, 5) === 5", en: "larger(5, 5) === 5" }, test: 'assert(wiekszy(5, 5) === 5, "wiekszy(5,5) powinno dać 5");' },
+        ],
+        starter:
+          "function wiekszy(a: number, b: number): number {\n  // zwróć większą z liczb a i b\n  return 0;\n}\n",
+        solution:
+          "function wiekszy(a: number, b: number): number {\n  return a > b ? a : b;\n}",
+        hints: [
+          { pl: "Porównaj <code>a &gt; b</code> i zwróć odpowiednią liczbę.", en: "Compare <code>a &gt; b</code> and return the right number." },
+          { pl: "Krótko: <code>return a &gt; b ? a : b;</code> (operator warunkowy).", en: "Short: <code>return a &gt; b ? a : b;</code> (conditional operator)." },
+        ],
+      },
+      /* --- NEW Lesson: parametry opcjonalne/domyślne --- */
+      {
+        id: "b-l-fnopt",
+        type: "lesson",
+        xp: 20,
+        title: { pl: "Parametry opcjonalne i domyślne", en: "Optional and default parameters" },
+        body: {
+          pl:
+            "<p>Czasem parametr nie zawsze jest potrzebny. Mamy dwa narzędzia:</p>" +
+            "<h3>Parametr opcjonalny — <code>?</code></h3>" +
+            "<p>Znak <code>?</code> po nazwie mówi „ten argument można pominąć”. Wtedy wewnątrz funkcji jego wartość to <code>undefined</code>.</p>" +
+            codeBlock('function powitaj(imie: string, tytul?: string): string {\n  return tytul ? `${tytul} ${imie}` : imie;\n}\n\npowitaj("Ada");            // "Ada"\npowitaj("Ada", "Pani");   // "Pani Ada"') +
+            "<h3>Parametr domyślny — <code>=</code></h3>" +
+            "<p>Możesz nadać wartość domyślną, która zostanie użyta, gdy argumentu nie podano.</p>" +
+            codeBlock('function powieksz(x: number, mnoznik: number = 2): number {\n  return x * mnoznik;\n}\n\npowieksz(5);     // 10 (użyto domyślnego 2)\npowieksz(5, 3);  // 15') +
+            '<div class="note warn"><b>Częsty błąd:</b> parametry opcjonalne muszą być <b>na końcu</b> listy. <code>function f(a?: number, b: number)</code> się nie skompiluje.</div>',
+          en:
+            "<p>Sometimes a parameter isn't always needed. We have two tools:</p>" +
+            "<h3>Optional parameter — <code>?</code></h3>" +
+            "<p>A <code>?</code> after the name means “this argument can be skipped”. Then inside the function its value is <code>undefined</code>.</p>" +
+            codeBlock('function greet(name: string, title?: string): string {\n  return title ? `${title} ${name}` : name;\n}\n\ngreet("Ada");            // "Ada"\ngreet("Ada", "Ms");      // "Ms Ada"') +
+            "<h3>Default parameter — <code>=</code></h3>" +
+            "<p>You can give a default value used when the argument is omitted.</p>" +
+            codeBlock('function scale(x: number, factor: number = 2): number {\n  return x * factor;\n}\n\nscale(5);     // 10 (used default 2)\nscale(5, 3);  // 15') +
+            '<div class="note warn"><b>Common mistake:</b> optional parameters must come <b>last</b>. <code>function f(a?: number, b: number)</code> will not compile.</div>',
+        },
+      },
+      /* --- NEW Lab: parametry domyślne --- */
+      {
+        id: "b-lab-fnopt",
+        type: "lab",
+        xp: 40,
+        title: { pl: "Powitanie z domyślnym słowem", en: "Greeting with a default word" },
+        prompt: {
+          pl: "Napisz funkcję <code>przywitanie(imie, slowo)</code>, gdzie <code>slowo</code> ma wartość domyślną <code>\"Cześć\"</code>. Funkcja zwraca <code>\"&lt;slowo&gt; &lt;imie&gt;\"</code>. Bez drugiego argumentu użyj domyślnego.",
+          en: "Write a function <code>greeting(name, word)</code>, where <code>word</code> defaults to <code>\"Cześć\"</code>. It returns <code>\"&lt;word&gt; &lt;name&gt;\"</code>. Without the second argument, use the default.",
+        },
+        tasks: [
+          { desc: { pl: 'przywitanie("Ada") === "Cześć Ada"', en: 'greeting("Ada") === "Cześć Ada"' }, test: 'assert(przywitanie("Ada") === "Cześć Ada", "Bez drugiego argumentu powinno być \\"Cześć Ada\\"");' },
+          { desc: { pl: 'przywitanie("Ada", "Hej") === "Hej Ada"', en: 'greeting("Ada", "Hej") === "Hej Ada"' }, test: 'assert(przywitanie("Ada", "Hej") === "Hej Ada", "Z drugim argumentem powinno być \\"Hej Ada\\"");' },
+        ],
+        starter:
+          "function przywitanie(imie: string, slowo: string = \"Cześć\"): string {\n  // zwróć \"<slowo> <imie>\"\n  return \"\";\n}\n",
+        solution:
+          "function przywitanie(imie: string, slowo: string = \"Cześć\"): string {\n  return slowo + \" \" + imie;\n}",
+        hints: [
+          { pl: "Wartość domyślną masz już w nagłówku: <code>slowo: string = \"Cześć\"</code>.", en: "The default is already in the header: <code>slowo: string = \"Cześć\"</code>." },
+          { pl: "Połącz <code>slowo</code>, spację i <code>imie</code>.", en: "Join <code>slowo</code>, a space and <code>imie</code>." },
         ],
       },
       /* --- Quiz 1 --- */
@@ -461,7 +714,8 @@ const COURSE = [
         title: { pl: "Klasy", en: "Classes" },
         body: {
           pl:
-            "<p>Klasy łączą dane (pola) i zachowanie (metody). W TypeScript pola mają typy, a do dyspozycji są modyfikatory dostępu: <code>public</code>, <code>private</code>, <code>protected</code>.</p>" +
+            "<p><b>Klasa</b> to szablon (jak formularz albo przepis), z którego tworzysz konkretne <b>obiekty</b> (wypełnione egzemplarze). Klasa <code>Konto</code> opisuje, jak wygląda każde konto; <code>new Konto(100)</code> tworzy jedno konkretne konto.</p>" +
+            "<p>Klasy łączą <b>dane</b> (pola) i <b>zachowanie</b> (metody). W TypeScript pola mają typy, a do dyspozycji są modyfikatory dostępu: <code>public</code> (dostępne wszędzie), <code>private</code> (tylko wewnątrz klasy), <code>protected</code> (klasa + dziedziczące).</p>" +
             codeBlock("class Konto {\n  private saldo: number;\n\n  constructor(poczatkowe: number) {\n    this.saldo = poczatkowe;\n  }\n\n  wplac(kwota: number): void {\n    this.saldo += kwota;\n  }\n\n  stan(): number {\n    return this.saldo;\n  }\n}\n\nconst k = new Konto(100);\nk.wplac(50);\nk.stan(); // 150") +
             '<div class="note">Skrót: parametr konstruktora z modyfikatorem (np. <code>constructor(private saldo: number)</code>) automatycznie tworzy i przypisuje pole.</div>',
           en:
@@ -497,6 +751,29 @@ const COURSE = [
         hints: [
           { pl: "Pole możesz zainicjalizować od razu: <code>private wartosc: number = 0;</code>", en: "You can initialize the field directly: <code>private value: number = 0;</code>" },
           { pl: "W metodach odwołuj się do pola przez <code>this</code>.", en: "Refer to the field via <code>this</code> inside methods." },
+        ],
+      },
+      /* --- NEW Lab: klasa Prostokat --- */
+      {
+        id: "i-lab-cls2",
+        type: "lab",
+        xp: 50,
+        title: { pl: "Klasa Prostokąt", en: "Rectangle class" },
+        prompt: {
+          pl: "Stwórz klasę <code>Prostokat</code> z konstruktorem przyjmującym <code>szerokosc</code> i <code>wysokosc</code> oraz metodami <code>pole()</code> (szerokość × wysokość) i <code>obwod()</code> (2 × (szerokość + wysokość)). Użyj skrótu z modyfikatorami w konstruktorze.",
+          en: "Create a <code>Rectangle</code> class with a constructor taking <code>width</code> and <code>height</code>, and methods <code>area()</code> (w × h) and <code>perimeter()</code> (2 × (w + h)). Use the constructor-modifier shortcut.",
+        },
+        tasks: [
+          { desc: { pl: "new Prostokat(3, 4).pole() === 12", en: "new Rectangle(3, 4).area() === 12" }, test: 'const r = new Prostokat(3, 4); assert(r.pole() === 12, "pole() dla 3x4 to 12");' },
+          { desc: { pl: "new Prostokat(3, 4).obwod() === 14", en: "new Rectangle(3, 4).perimeter() === 14" }, test: 'const r2 = new Prostokat(3, 4); assert(r2.obwod() === 14, "obwod() dla 3x4 to 14");' },
+        ],
+        starter:
+          "class Prostokat {\n  // konstruktor z polami szerokosc i wysokosc\n  // metody pole() i obwod()\n}\n",
+        solution:
+          "class Prostokat {\n  constructor(private szerokosc: number, private wysokosc: number) {}\n  pole(): number { return this.szerokosc * this.wysokosc; }\n  obwod(): number { return 2 * (this.szerokosc + this.wysokosc); }\n}",
+        hints: [
+          { pl: "Skrót: <code>constructor(private szerokosc: number, private wysokosc: number) {}</code> tworzy pola automatycznie.", en: "Shortcut: <code>constructor(private width: number, private height: number) {}</code> creates the fields automatically." },
+          { pl: "W metodach używaj <code>this.szerokosc</code> i <code>this.wysokosc</code>.", en: "Use <code>this.width</code> and <code>this.height</code> in methods." },
         ],
       },
       /* --- Lesson --- */
@@ -568,6 +845,29 @@ const COURSE = [
             codeBlock('function format(x: string | number): string {\n  if (typeof x === "number") {\n    return x.toFixed(2);\n  }\n  return x.toUpperCase();\n}') +
             '<div class="note">Thanks to <code>typeof</code>, the compiler knows in which branch <code>x</code> is a number and in which it is text.</div>',
         },
+      },
+      /* --- NEW Lab: union + narrowing --- */
+      {
+        id: "i-lab-union",
+        type: "lab",
+        xp: 55,
+        title: { pl: "Formatowanie wartości", en: "Formatting a value" },
+        prompt: {
+          pl: "Napisz funkcję <code>formatuj(x: string | number): string</code>. Gdy <code>x</code> to liczba — zwróć ją z dwoma miejscami po przecinku (<code>toFixed(2)</code>). Gdy to tekst — zwróć go bez spacji na końcach (<code>trim()</code>). Wykorzystaj zawężanie typu przez <code>typeof</code>.",
+          en: "Write a function <code>format(x: string | number): string</code>. When <code>x</code> is a number — return it with two decimals (<code>toFixed(2)</code>). When it's text — return it trimmed (<code>trim()</code>). Use <code>typeof</code> narrowing.",
+        },
+        tasks: [
+          { desc: { pl: 'formatuj(3) === "3.00"', en: 'format(3) === "3.00"' }, test: 'assert(formatuj(3) === "3.00", "Dla liczby 3 powinno być \\"3.00\\"");' },
+          { desc: { pl: 'formatuj("  hej  ") === "hej"', en: 'format("  hej  ") === "hej"' }, test: 'assert(formatuj("  hej  ") === "hej", "Tekst powinien być przycięty do \\"hej\\"");' },
+        ],
+        starter:
+          "function formatuj(x: string | number): string {\n  // jeśli liczba -> toFixed(2), jeśli tekst -> trim()\n  return \"\";\n}\n",
+        solution:
+          "function formatuj(x: string | number): string {\n  if (typeof x === \"number\") {\n    return x.toFixed(2);\n  }\n  return x.trim();\n}",
+        hints: [
+          { pl: "Sprawdź typ: <code>if (typeof x === \"number\") { ... }</code>.", en: "Check the type: <code>if (typeof x === \"number\") { ... }</code>." },
+          { pl: "W gałęzi <code>else</code> kompilator wie, że <code>x</code> to <code>string</code> — masz <code>.trim()</code>.", en: "In the <code>else</code> branch the compiler knows <code>x</code> is a <code>string</code> — you get <code>.trim()</code>." },
+        ],
       },
       /* --- Quiz --- */
       {
@@ -654,6 +954,49 @@ const COURSE = [
         hints: [
           { pl: "Pobierz wartość: <code>const v = await daj(n);</code>", en: "Get the value: <code>const v = await give(n);</code>" },
           { pl: "Następnie zwróć <code>v * 2</code>.", en: "Then return <code>v * 2</code>." },
+        ],
+      },
+      /* --- NEW Lesson: Promise.all --- */
+      {
+        id: "i-l-async2",
+        type: "lesson",
+        xp: 25,
+        title: { pl: "Wiele obietnic naraz", en: "Many promises at once" },
+        body: {
+          pl:
+            "<p>Gdy potrzebujesz wyników kilku operacji asynchronicznych, nie musisz czekać na każdą po kolei. <code>Promise.all</code> uruchamia je <b>równolegle</b> i czeka, aż wszystkie się skończą.</p>" +
+            codeBlock("async function pobierz(): Promise<number> {\n  const [a, b] = await Promise.all([\n    Promise.resolve(2),\n    Promise.resolve(3),\n  ]);\n  return a + b; // 5\n}") +
+            '<div class="note"><code>Promise.all</code> zwraca tablicę wyników w tej samej kolejności co wejście. Jeśli <b>którakolwiek</b> obietnica odrzuci (błąd), całość się wywala — wtedy przyda się <code>Promise.allSettled</code>.</div>' +
+            '<div class="note warn"><b>Częsty błąd:</b> sekwencyjne <code>await</code> jeden po drugim, gdy operacje są niezależne — niepotrzebnie spowalnia kod.</div>',
+          en:
+            "<p>When you need results of several async operations, you don't have to wait for each one in turn. <code>Promise.all</code> runs them <b>in parallel</b> and waits until all finish.</p>" +
+            codeBlock("async function fetchData(): Promise<number> {\n  const [a, b] = await Promise.all([\n    Promise.resolve(2),\n    Promise.resolve(3),\n  ]);\n  return a + b; // 5\n}") +
+            '<div class="note"><code>Promise.all</code> returns an array of results in the same order as the input. If <b>any</b> promise rejects, the whole thing fails — that is when <code>Promise.allSettled</code> helps.</div>' +
+            '<div class="note warn"><b>Common mistake:</b> sequential <code>await</code> one after another for independent operations — needlessly slows the code down.</div>',
+        },
+      },
+      /* --- NEW Lab: Promise.all --- */
+      {
+        id: "i-lab-async2",
+        type: "lab",
+        xp: 60,
+        title: { pl: "Suma dwóch obietnic", en: "Sum of two promises" },
+        prompt: {
+          pl: "Napisz <code>async</code> funkcję <code>sumaAsync(a, b)</code>, która przyjmuje dwie obietnice liczb (<code>Promise&lt;number&gt;</code>) i zwraca ich sumę. Pobierz oba wyniki równolegle przez <code>Promise.all</code>.",
+          en: "Write an <code>async</code> function <code>sumAsync(a, b)</code> taking two number promises (<code>Promise&lt;number&gt;</code>) and returning their sum. Fetch both results in parallel using <code>Promise.all</code>.",
+        },
+        tasks: [
+          { desc: { pl: "await sumaAsync(P(2), P(3)) === 5", en: "await sumAsync(P(2), P(3)) === 5" }, test: 'const r = await sumaAsync(Promise.resolve(2), Promise.resolve(3)); assert(r === 5, "2 + 3 powinno dać 5");' },
+          { desc: { pl: "await sumaAsync(P(10), P(-4)) === 6", en: "await sumAsync(P(10), P(-4)) === 6" }, test: 'const r2 = await sumaAsync(Promise.resolve(10), Promise.resolve(-4)); assert(r2 === 6, "10 + (-4) powinno dać 6");' },
+        ],
+        asyncTest: true,
+        starter:
+          "async function sumaAsync(a: Promise<number>, b: Promise<number>): Promise<number> {\n  // pobierz oba wyniki przez Promise.all i zwróć ich sumę\n  return 0;\n}\n",
+        solution:
+          "async function sumaAsync(a: Promise<number>, b: Promise<number>): Promise<number> {\n  const [x, y] = await Promise.all([a, b]);\n  return x + y;\n}",
+        hints: [
+          { pl: "<code>const [x, y] = await Promise.all([a, b]);</code>", en: "<code>const [x, y] = await Promise.all([a, b]);</code>" },
+          { pl: "Następnie zwróć <code>x + y</code>.", en: "Then return <code>x + y</code>." },
         ],
       },
     ],
