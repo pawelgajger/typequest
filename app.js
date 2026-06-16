@@ -215,7 +215,11 @@
     renderNav();
     $("#content").scrollTo(0, 0);
     window.scrollTo(0, 0);
-    if (window.innerWidth <= 900) $("#sidebar").classList.remove("open");
+    if (window.innerWidth <= 900) {
+      $("#sidebar").classList.remove("open");
+      const bd = $("#sidebarBackdrop");
+      if (bd) bd.classList.remove("show");
+    }
   }
 
   function findNextModule(levelIdx, modIdx) {
@@ -341,11 +345,27 @@
       el("button", { class: "btn secondary", text: "← " + t("prev"), onclick: () => goTo(prev) }),
       el("button", {
         class: "btn",
+        id: "nextBtn",
         text: t("next") + " →",
         disabled: nextUnlocked ? null : "true",
-        onclick: () => { if (nextUnlocked) goTo(next); else toast(t("locked"), t("lockedMsg"), ""); },
+        onclick: () => {
+          const n = findNextModule(route.levelIdx, route.modIdx);
+          const ok = n.view === "home" || isModuleUnlocked(n.levelIdx, n.modIdx);
+          if (ok) goTo(n); else toast(t("locked"), t("lockedMsg"), "");
+        },
       }),
     ]);
+  }
+
+  // Po ukończeniu modułu (lab/quiz) odblokowujemy przycisk „Dalej" bez pełnego
+  // re-renderu (żeby nie resetować edytora Monaco z kodem użytkownika).
+  function refreshNextButton() {
+    const btn = document.getElementById("nextBtn");
+    if (!btn) return;
+    const next = findNextModule(route.levelIdx, route.modIdx);
+    const unlocked = next.view === "home" || isModuleUnlocked(next.levelIdx, next.modIdx);
+    if (unlocked) btn.removeAttribute("disabled");
+    else btn.setAttribute("disabled", "true");
   }
 
   /* ---------- Lekcja ---------- */
@@ -557,6 +577,7 @@
       banner.className = "result-banner ok show";
       banner.innerHTML = "✅ <b>" + t("allTasksPass") + "</b>";
       completeModule(mod);
+      refreshNextButton();
     } else {
       banner.className = "result-banner err show";
       const firstFail = taskResults.find((r) => !r.ok);
@@ -650,7 +671,8 @@
       const banner = el("div", { class: "result-banner show " + (passed ? "ok" : "err") });
       if (passed) {
         banner.innerHTML = "🎉 <b>" + t("quizPassed") + "</b>";
-        const wasNew = completeModule(mod);
+        completeModule(mod);
+        refreshNextButton();
         if (correct === mod.questions.length) unlockAchievement("perfect-quiz");
       } else {
         banner.innerHTML = "🔁 <b>" + t("quizFailed") + "</b>";
@@ -1034,6 +1056,17 @@
   /* ---------- Inicjalizacja UI / zdarzenia ---------- */
   function bindUI() {
     $("#brandHome").addEventListener("click", () => goTo({ view: "home" }));
+
+    const sidebar = $("#sidebar");
+    const backdrop = $("#sidebarBackdrop");
+    function closeSidebar() { sidebar.classList.remove("open"); if (backdrop) backdrop.classList.remove("show"); }
+    function toggleSidebar() {
+      const open = sidebar.classList.toggle("open");
+      if (backdrop) backdrop.classList.toggle("show", open);
+    }
+    const navToggle = $("#navToggle");
+    if (navToggle) navToggle.addEventListener("click", toggleSidebar);
+    if (backdrop) backdrop.addEventListener("click", closeSidebar);
 
     $("#langToggle").addEventListener("click", (e) => {
       const btn = e.target.closest("button[data-lang]");

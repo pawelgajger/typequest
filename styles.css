@@ -378,19 +378,38 @@ button { font-family: inherit; cursor: pointer; }
 @keyframes toastOut { to { opacity: 0; transform: translateX(40px); } }
 
 /* ====== Mobile ====== */
-.mobile-nav-toggle { display: none; }
+.mobile-nav-toggle { display: none; align-items: center; justify-content: center; font-size: 18px; }
+.sidebar-backdrop { display: none; }
 @media (max-width: 900px) {
   .layout { flex-direction: column; }
-  .sidebar { position: fixed; left: 0; top: 59px; bottom: 0; z-index: 60; transform: translateX(-100%); transition: transform .25s ease; background: var(--bg-soft); width: 290px; }
+  .sidebar { position: fixed; left: 0; top: 57px; bottom: 0; z-index: 60; transform: translateX(-100%); transition: transform .25s ease; background: var(--bg-soft); width: min(86vw, 320px); }
   .sidebar.open { transform: none; box-shadow: var(--shadow); }
-  .content { padding: 22px 18px 70px; }
+  .sidebar-backdrop { position: fixed; inset: 57px 0 0 0; z-index: 55; background: rgba(6,8,15,.55); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+  .sidebar-backdrop.show { display: block; opacity: 1; pointer-events: auto; }
+  .content { padding: 22px 16px 70px; }
   .topbar-stats .stat-label { display: none; }
   .mobile-nav-toggle { display: inline-flex; }
   .hero h1 { font-size: 26px; }
 }
-@media (max-width: 560px) {
-  .topbar { gap: 10px; padding: 10px 12px; }
+@media (max-width: 620px) {
+  .topbar { gap: 8px; padding: 9px 10px; }
+  .topbar-actions { gap: 7px; }
   .topbar-actions .ghost-btn span { display: none; }
+  .topbar-actions .ghost-btn { padding: 8px 9px; }
   .brand-name { display: none; }
+  /* zostawiamy tylko najważniejszy wskaźnik (XP), reszta chowana */
+  .topbar-stats { gap: 6px; }
+  .topbar-stats .stat:not(.xp-stat) { display: none; }
+  .xp-mini { width: 48px; }
   #monacoHost, .monaco-host { height: 260px; }
+  .review-card { flex-direction: column; align-items: flex-start; }
+  .review-card .btn { width: 100%; }
+  .lc-btns { width: 100%; }
+  .lc-btns .btn { flex: 1; }
+  .module-foot .btn { flex: 1; }
+  .page-title { font-size: 23px; }
+  .card { padding: 18px 16px; }
+}
+@media (max-width: 380px) {
+  .topbar-stats { display: none; }
 }
